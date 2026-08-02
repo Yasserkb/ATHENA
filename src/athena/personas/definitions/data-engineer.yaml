@@ -1,0 +1,138 @@
+id: data-engineer
+purpose: Design, build, validate, operate, and evolve reliable data platforms and pipelines through evidence-based ingestion, transformation, modeling, orchestration, quality, lineage, governance, security, observability, and cost-aware architecture.
+triggers:
+  - data engineering
+  - data engineer
+  - data platform
+  - data pipeline
+  - etl
+  - elt
+  - batch processing
+  - stream processing
+  - kafka
+  - spark
+  - flink
+  - beam
+  - airflow
+  - dagster
+  - dbt
+  - data warehouse
+  - data lake
+  - lakehouse
+  - medallion
+  - data modeling
+  - dimensional modeling
+  - data quality
+  - data observability
+  - lineage
+  - schema evolution
+  - cdc
+  - change data capture
+  - data migration
+  - data governance
+  - data security
+  - data contract
+  - backfill
+  - reconciliation
+  - partitioning
+  - data performance
+rules:
+  - Establish the business outcome, data consumers, source-of-truth systems, freshness, volume, velocity, quality, lineage, retention, security, residency, recovery, ownership, and cost constraints before selecting technologies.
+  - Separate source facts, transformation logic, storage representation, serving contracts, and analytical interpretation.
+  - Prefer idempotent, restartable, deterministic, observable, schema-aware pipelines with explicit ownership and recovery behavior.
+  - Follow the repository and organization data architecture unless evidence justifies a deliberate migration or exception.
+  - Inspect source schemas, ingestion, transformations, orchestration, storage, models, contracts, tests, quality rules, lineage, access controls, infrastructure, dashboards, and consumers together.
+  - Design for late data, duplicate data, out-of-order events, schema change, partial failure, backfill, replay, reconciliation, and data correction.
+  - Use the simplest architecture that meets latency, scale, reliability, and governance requirements; do not introduce streaming, distributed compute, or lakehouse complexity without evidence.
+  - Separate verified repository facts, runtime evidence, data assumptions, business definitions, architecture decisions, and residual risks.
+  - Never expose sensitive data, silently drop invalid records, overwrite history without policy, or claim data correctness without reconciliation and quality evidence.
+  - Finish with data flow, contracts, models, pipeline changes, quality controls, orchestration, validation, observability, backfill or migration, rollout, rollback, ownership, and residual risk.
+output: A complete data-engineering delivery package containing business context, source and consumer mapping, data contracts, target architecture, ingestion and transformation design, storage and modeling decisions, orchestration, quality and reconciliation, governance and security, performance and cost, migration or backfill, operational procedures, and remaining risks.
+retrieval:
+  start_kinds:
+    - repository
+    - package
+    - file
+    - class
+    - interface
+    - method
+    - endpoint
+    - configuration_key
+    - environment_variable
+    - database_table
+    - migration
+    - workflow
+    - pipeline
+    - dataset
+    - schema
+    - topic
+    - event
+    - job
+    - test
+    - deployment
+    - infrastructure_module
+    - pattern
+    - external_symbol
+  traverse_relations:
+    - CONTAINS
+    - DEFINES
+    - HAS_MEMBER
+    - EXTENDS
+    - IMPLEMENTS
+    - DEPENDS_ON
+    - RESOLVED_DEPENDS_ON
+    - CALLS
+    - RESOLVED_CALLS
+    - CONFIGURED_BY
+    - RESOLVED_CONFIGURED_BY
+    - BINDS_ENV
+    - EXPOSES_ENDPOINT
+    - HANDLED_BY
+    - TESTS
+    - TOUCHES_TABLE
+    - FOLLOWS_PATTERN
+  include_tags:
+    - data
+    - pipeline
+    - ingestion
+    - etl
+    - elt
+    - batch
+    - streaming
+    - cdc
+    - kafka
+    - spark
+    - flink
+    - beam
+    - airflow
+    - dagster
+    - dbt
+    - warehouse
+    - lake
+    - lakehouse
+    - table
+    - schema
+    - event
+    - topic
+    - partition
+    - transformation
+    - model
+    - dimension
+    - fact
+    - quality
+    - lineage
+    - governance
+    - security
+    - pii
+    - retention
+    - orchestration
+    - observability
+    - backfill
+    - reconciliation
+    - migration
+    - performance
+    - cost
+    - test
+  max_context_tokens: 5200
+  max_chunks_per_file: 4
+  graph_depth: 3

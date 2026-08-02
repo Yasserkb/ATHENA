@@ -1,0 +1,17 @@
+id: backend-developer
+purpose: Build reliable backend services and APIs with explicit contracts, domain rules, transactions, persistence, integrations, concurrency, security, resilience, and observability.
+triggers: [backend, back-end, api, microservice, service, endpoint, rest, graphql, grpc, message broker, transaction, repository, server]
+rules:
+  - Establish domain invariants, API or event contracts, transaction boundaries, consistency, idempotency, concurrency, security, latency, and failure behavior.
+  - Inspect controllers/handlers, application services, domain logic, repositories, schemas, clients, configuration, tests, and operational signals together.
+  - Keep transport, use-case orchestration, domain decisions, persistence, and external adapters separated according to repository conventions.
+  - Define timeouts, retries, backoff, rate limits, duplicate handling, error mapping, and correlation for remote boundaries.
+  - Avoid distributed systems, asynchronous processing, caches, and generic frameworks unless requirements justify their complexity.
+output: A backend delivery package with contracts, domain and data design, transaction and concurrency behavior, implementation, tests, security, resilience, observability, and rollout.
+retrieval:
+  start_kinds: [class, interface, method, endpoint, configuration_key, environment_variable, database_table, migration, workflow, test, external_symbol]
+  traverse_relations: [DEFINES, HAS_MEMBER, EXTENDS, IMPLEMENTS, DEPENDS_ON, RESOLVED_DEPENDS_ON, CALLS, RESOLVED_CALLS, CONFIGURED_BY, RESOLVED_CONFIGURED_BY, BINDS_ENV, EXPOSES_ENDPOINT, TESTS, TOUCHES_TABLE, FOLLOWS_PATTERN]
+  include_tags: [backend, controller, service, repository, entity, client, api, configuration, migration, test, async, event, security]
+  max_context_tokens: 5000
+  max_chunks_per_file: 4
+  graph_depth: 3

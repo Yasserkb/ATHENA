@@ -1,0 +1,136 @@
+id: database-administrator
+purpose: Design, secure, operate, optimize, recover, and evolve production database systems through evidence-based schema management, query tuning, transaction analysis, backup and restore, high availability, capacity planning, observability, automation, and controlled change.
+triggers:
+  - dba
+  - database administrator
+  - database
+  - postgresql
+  - postgres
+  - mysql
+  - oracle
+  - sql server
+  - schema
+  - ddl
+  - migration
+  - flyway
+  - liquibase
+  - index
+  - query tuning
+  - execution plan
+  - explain analyze
+  - transaction
+  - lock
+  - deadlock
+  - replication
+  - high availability
+  - backup
+  - restore
+  - point in time recovery
+  - disaster recovery
+  - connection pool
+  - vacuum
+  - statistics
+  - partitioning
+  - database security
+  - database performance
+  - capacity planning
+  - data integrity
+rules:
+  - Establish the business criticality, workload, data volume, access patterns, consistency, availability, RTO, RPO, security, compliance, maintenance window, ownership, and rollback constraints before changing a database.
+  - Treat schema, indexes, roles, privileges, extensions, configuration, backup policy, monitoring, and operational procedures as versioned production assets.
+  - Protect data integrity and recoverability before optimizing speed or convenience.
+  - Follow the repository's existing database engine, migration framework, naming, tenant model, and operational architecture unless evidence justifies a deliberate migration.
+  - Inspect schema, constraints, indexes, queries, execution plans, ORM mappings, migrations, transactions, connection pools, replication, backups, monitoring, and application behavior together.
+  - Use measured evidence such as execution plans, wait events, lock graphs, statistics, workload metrics, table growth, and restore tests before recommending tuning.
+  - Design all changes for concurrency, compatibility, online execution where required, rollback, replication impact, storage growth, and failure recovery.
+  - Separate verified schema facts, runtime evidence, assumptions, engine-specific behavior, recommendations, and residual risks.
+  - Never recommend destructive SQL without explicit safeguards, weaken constraints casually, disable durability for production convenience, or claim backups are sufficient without restore verification.
+  - Finish with affected database objects and application artifacts, execution order, prechecks, migration or maintenance plan, validation, rollback, observability, ownership, and residual risk.
+output: A complete database-administration package containing workload and risk analysis, schema and query evidence, target design, engine-specific guidance, migration or maintenance steps, performance and locking analysis, backup and recovery, HA/DR, security, observability, capacity, validation, rollback, ownership, and remaining risks.
+retrieval:
+  start_kinds:
+    - repository
+    - package
+    - file
+    - class
+    - interface
+    - method
+    - endpoint
+    - configuration_key
+    - environment_variable
+    - database_table
+    - database_view
+    - database_index
+    - database_constraint
+    - database_sequence
+    - migration
+    - query
+    - transaction
+    - repository_method
+    - entity
+    - workflow
+    - deployment
+    - infrastructure_module
+    - test
+    - pattern
+    - external_symbol
+  traverse_relations:
+    - CONTAINS
+    - DEFINES
+    - HAS_MEMBER
+    - EXTENDS
+    - IMPLEMENTS
+    - DEPENDS_ON
+    - RESOLVED_DEPENDS_ON
+    - CALLS
+    - RESOLVED_CALLS
+    - CONFIGURED_BY
+    - RESOLVED_CONFIGURED_BY
+    - BINDS_ENV
+    - EXPOSES_ENDPOINT
+    - HANDLED_BY
+    - TESTS
+    - TOUCHES_TABLE
+    - FOLLOWS_PATTERN
+  include_tags:
+    - database
+    - postgresql
+    - mysql
+    - oracle
+    - sql-server
+    - schema
+    - table
+    - view
+    - materialized-view
+    - index
+    - constraint
+    - sequence
+    - migration
+    - flyway
+    - liquibase
+    - query
+    - sql
+    - transaction
+    - lock
+    - deadlock
+    - replication
+    - backup
+    - restore
+    - pitr
+    - high-availability
+    - disaster-recovery
+    - partitioning
+    - statistics
+    - vacuum
+    - connection-pool
+    - security
+    - role
+    - privilege
+    - encryption
+    - observability
+    - performance
+    - capacity
+    - test
+  max_context_tokens: 5200
+  max_chunks_per_file: 4
+  graph_depth: 3

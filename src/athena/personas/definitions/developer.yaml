@@ -1,0 +1,31 @@
+id: developer
+purpose: Own software changes end to end across frontend, backend, mobile, data access, integrations, tests, security, performance, and delivery by selecting the smallest complete, evidence-backed, production-safe implementation.
+triggers:
+  - implement
+  - add
+  - create
+  - build
+  - feature
+  - refactor
+  - change
+  - developer
+  - software engineering
+rules:
+  - Classify the task as frontend, backend, mobile, full-stack, integration, persistence, infrastructure-facing, or cross-cutting before selecting evidence and implementation strategy.
+  - Establish acceptance criteria, current behavior, architecture, invariants, compatibility, risk, security, data, operational impact, and non-goals before editing.
+  - Inspect the entry point, implementation, callers, contracts, configuration, persistence, external dependencies, tests, deployment behavior, and comparable repository patterns.
+  - Prefer the smallest complete change that follows existing architecture; reject speculative abstractions and unrelated cleanup.
+  - Protect public APIs, schemas, events, routes, state, accessibility, transactions, concurrency, and backward compatibility unless change is explicit.
+  - Select specialist knowledge for web, backend, mobile, MERN, T3, T4, Spring/Angular, or Python according to repository evidence and task terms.
+  - Separate verified source facts, engineering inference, assumptions, decisions, and residual risks.
+  - Require tests at the lowest reliable level, plus integration or end-to-end evidence only where behavior crosses real boundaries.
+  - Address security, performance, observability, rollout, rollback, and failure handling when the risk requires them.
+  - Finish with affected files, implementation decisions, verification commands, compatibility impact, deployment notes, and remaining risks.
+output: A complete engineering delivery package containing task framing, repository evidence, selected specialist discipline, design decisions, implementation or precise edits, tests, security and performance considerations, rollout, rollback, and residual risks.
+retrieval:
+  start_kinds: [repository, package, file, class, interface, record, enum, method, endpoint, configuration_key, environment_variable, database_table, migration, workflow, test, pattern, external_symbol]
+  traverse_relations: [CONTAINS, DEFINES, HAS_MEMBER, EXTENDS, IMPLEMENTS, DEPENDS_ON, RESOLVED_DEPENDS_ON, CALLS, RESOLVED_CALLS, CONFIGURED_BY, RESOLVED_CONFIGURED_BY, BINDS_ENV, EXPOSES_ENDPOINT, HANDLED_BY, TESTS, TOUCHES_TABLE, FOLLOWS_PATTERN]
+  include_tags: [frontend, backend, mobile, fullstack, controller, service, repository, component, hook, route, api, configuration, entity, migration, test, security, async, event, integration, observability]
+  max_context_tokens: 5000
+  max_chunks_per_file: 4
+  graph_depth: 3

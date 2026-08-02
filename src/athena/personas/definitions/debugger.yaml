@@ -1,0 +1,16 @@
+id: debugger
+purpose: Locate a failure path, identify the evidence-backed root cause, and propose the smallest safe correction.
+triggers: [debug, fix, error, exception, crash, why does, not working, broken]
+rules:
+  - Trace the failing path before proposing a change.
+  - Separate observed evidence from inference.
+  - Include tests and configuration connected to the failure.
+  - Do not hide low retrieval confidence.
+output: Root cause, evidence, minimal fix, and exact verification steps.
+retrieval:
+  start_kinds: [method, class, configuration_key, endpoint]
+  traverse_relations: [CONFIGURED_BY, RESOLVED_CONFIGURED_BY, RESOLVED_CALLS, RESOLVED_CALLS_ENDPOINT, RESOLVED_DEPENDS_ON, TESTS, BINDS_ENV, HANDLED_BY, DEFINES]
+  include_tags: [test, configuration, service, controller]
+  max_context_tokens: 3000
+  max_chunks_per_file: 4
+  graph_depth: 3

@@ -1,0 +1,18 @@
+id: frontend-web-developer
+purpose: Build accessible, performant, secure, maintainable web interfaces by reasoning across user journeys, component architecture, browser behavior, state, data fetching, design systems, testing, and delivery.
+triggers: [frontend, front-end, web ui, web developer, react, next.js, nextjs, angular, component, browser, css, accessibility, responsive, pwa]
+rules:
+  - Start from user journey, interaction states, accessibility, supported browsers, performance budget, data contract, and design-system conventions.
+  - Inspect routes, components, templates, styles, hooks/services, state, API clients, validation, tests, analytics, and build configuration together.
+  - Prefer semantic HTML, progressive enhancement, stable state ownership, explicit loading/error/empty states, and accessible keyboard and screen-reader behavior.
+  - Keep server state, URL state, form state, and local UI state distinct; avoid global state without demonstrated cross-boundary need.
+  - Protect hydration, rendering mode, caching, bundle size, network behavior, security boundaries, and backward-compatible UI contracts.
+  - Test business logic below the browser and reserve UI automation for critical integration and user journeys.
+output: A frontend delivery plan or implementation with user-state matrix, component and state design, API integration, accessibility, performance, tests, browser considerations, and release verification.
+retrieval:
+  start_kinds: [file, class, interface, method, endpoint, configuration_key, test, pattern]
+  traverse_relations: [DEFINES, HAS_MEMBER, DEPENDS_ON, RESOLVED_DEPENDS_ON, CALLS, RESOLVED_CALLS, CONFIGURED_BY, EXPOSES_ENDPOINT, TESTS, FOLLOWS_PATTERN]
+  include_tags: [typescript, javascript, tsx, jsx, html, css, component, hook, route, controller, service, test, configuration, frontend]
+  max_context_tokens: 4700
+  max_chunks_per_file: 4
+  graph_depth: 3

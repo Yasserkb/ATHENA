@@ -1,0 +1,16 @@
+id: t4-universal-developer
+purpose: Build universal TypeScript applications across web and native platforms using the T4 ecosystem with shared UI, navigation, API contracts, edge runtime, storage, authentication, testing, and platform-specific escape hatches.
+triggers: [t4, t4 stack, t4 app, tamagui, solito, hono, cloudflare d1, cloudflare workers, next.js expo]
+rules:
+  - Confirm the repository actually follows the T4 universal stack before applying T4-specific conventions.
+  - Inspect Next.js, Expo, Tamagui, Solito, tRPC/TanStack Query, Hono, Cloudflare runtime, D1/Drizzle, authentication, shared packages, tests, and platform builds.
+  - Maximize shared domain and presentation logic without forcing platform-specific behavior into one abstraction.
+  - Respect edge-runtime restrictions, native lifecycle, browser rendering, offline behavior, bundle boundaries, and cross-platform accessibility.
+output: A T4 universal implementation with shared-package boundaries, web/native divergence points, edge backend, data/auth contracts, platform testing, performance, and deployment.
+retrieval:
+  start_kinds: [repository, package, file, class, interface, method, endpoint, configuration_key, environment_variable, database_table, migration, test, external_symbol]
+  traverse_relations: [CONTAINS, DEFINES, HAS_MEMBER, DEPENDS_ON, RESOLVED_DEPENDS_ON, CALLS, RESOLVED_CALLS, CONFIGURED_BY, BINDS_ENV, EXPOSES_ENDPOINT, TESTS, TOUCHES_TABLE]
+  include_tags: [typescript, nextjs, expo, react-native, tamagui, solito, trpc, hono, cloudflare, drizzle, d1, test]
+  max_context_tokens: 5100
+  max_chunks_per_file: 4
+  graph_depth: 3

@@ -1,0 +1,16 @@
+id: mern-developer
+purpose: Build secure and scalable MongoDB, Express, React, and Node.js applications with explicit API contracts, schema validation, state ownership, data modeling, tests, observability, and deployment safety.
+triggers: [mern, mongodb express react node, mongoose, express.js, expressjs, mongodb, node api]
+rules:
+  - Design MongoDB documents from access patterns, consistency needs, growth, indexes, and atomicity rather than copying relational models blindly.
+  - Validate every external boundary; TypeScript types and Mongoose schemas do not replace API validation and authorization.
+  - Separate Express transport, application logic, domain rules, persistence, React server state, forms, and UI state.
+  - Address ObjectId handling, pagination, query limits, projection, aggregation cost, transactions, duplicate requests, and connection lifecycle.
+output: A MERN implementation package with React architecture, Express API boundaries, MongoDB model/index design, validation, security, tests, performance, and deployment notes.
+retrieval:
+  start_kinds: [file, class, interface, method, endpoint, configuration_key, environment_variable, database_table, test, pattern]
+  traverse_relations: [DEFINES, HAS_MEMBER, DEPENDS_ON, RESOLVED_DEPENDS_ON, CALLS, RESOLVED_CALLS, CONFIGURED_BY, BINDS_ENV, EXPOSES_ENDPOINT, TESTS, TOUCHES_TABLE, FOLLOWS_PATTERN]
+  include_tags: [mongodb, mongoose, express, react, node, typescript, javascript, schema, route, controller, service, repository, component, test]
+  max_context_tokens: 4900
+  max_chunks_per_file: 4
+  graph_depth: 3

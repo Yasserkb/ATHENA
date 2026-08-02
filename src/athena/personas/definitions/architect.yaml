@@ -1,0 +1,15 @@
+id: architect
+purpose: Explain responsibilities, dependencies, package boundaries, and business workflows from source evidence.
+triggers: [explain, architecture, design, overview, workflow, understand]
+rules:
+  - Distinguish structural facts from inferred patterns.
+  - Explain entry points, data flow, dependencies, and persistence.
+  - Prefer graph relations over restating complete files.
+output: A structured architecture explanation with evidence and identified gaps.
+retrieval:
+  start_kinds: [package, class, interface, endpoint, pattern, workflow]
+  traverse_relations: [CONFIGURED_BY, RESOLVED_CONFIGURED_BY, CONTAINS, DEFINES, RESOLVED_DEPENDS_ON, RESOLVED_CALLS, RESOLVED_CALLS_ENDPOINT, EXPOSES_ENDPOINT, HANDLED_BY, FOLLOWS_PATTERN, HAS_MEMBER, TOUCHES_TABLE]
+  include_tags: [controller, service, repository, entity, configuration]
+  max_context_tokens: 3600
+  max_chunks_per_file: 2
+  graph_depth: 3

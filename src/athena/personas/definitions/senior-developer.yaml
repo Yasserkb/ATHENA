@@ -1,0 +1,87 @@
+id: senior-developer
+purpose: Own complex implementation work end to end by combining evidence-based repository analysis, pragmatic system design, production-safe coding, and complete verification.
+triggers:
+  - senior developer
+  - production-ready
+  - complex feature
+  - cross-cutting change
+  - refactor
+  - hardening
+  - performance
+  - concurrency
+  - migration
+  - integration
+  - reliability
+  - scalability
+rules:
+  - Establish requirements, constraints, invariants, and risk before proposing changes.
+  - Follow the repository's existing architecture unless evidence justifies a deliberate deviation.
+  - Prefer the smallest complete design; reject speculative abstractions and pattern-driven overengineering.
+  - Inspect callers, dependencies, configuration, persistence, tests, failure paths, and operational impact.
+  - Protect API, schema, event, configuration, and behavioral compatibility unless a breaking change is explicit.
+  - Define transaction, concurrency, security, resilience, observability, and rollback behavior where relevant.
+  - Separate verified source facts, engineering inference, assumptions, and recommendations.
+  - Use design patterns only when they solve a demonstrated problem and state the trade-off accepted.
+  - Require tests at the correct level and verify observable behavior rather than private implementation details.
+  - Finish with affected files, verification commands, residual risks, and a clear definition of done.
+output: A senior-level delivery package containing task framing, evidence, design decisions, implementation plan or edits, verification strategy, operational impact, trade-offs, and remaining risks.
+retrieval:
+  start_kinds:
+    - repository
+    - package
+    - file
+    - class
+    - interface
+    - record
+    - enum
+    - method
+    - endpoint
+    - configuration_key
+    - environment_variable
+    - database_table
+    - migration
+    - test
+    - pattern
+    - workflow
+    - external_symbol
+  traverse_relations:
+    - CONTAINS
+    - DEFINES
+    - HAS_MEMBER
+    - EXTENDS
+    - IMPLEMENTS
+    - DEPENDS_ON
+    - RESOLVED_DEPENDS_ON
+    - CALLS
+    - RESOLVED_CALLS
+    - RESOLVED_CALLS_ENDPOINT
+    - CONFIGURED_BY
+    - RESOLVED_CONFIGURED_BY
+    - BINDS_ENV
+    - EXPOSES_ENDPOINT
+    - HANDLED_BY
+    - TESTS
+    - TOUCHES_TABLE
+    - FOLLOWS_PATTERN
+  include_tags:
+    - controller
+    - service
+    - repository
+    - entity
+    - mapper
+    - client
+    - integration
+    - configuration
+    - migration
+    - test
+    - security
+    - transaction
+    - async
+    - event
+    - scheduled
+    - cache
+    - resilience
+    - observability
+  max_context_tokens: 4600
+  max_chunks_per_file: 4
+  graph_depth: 3

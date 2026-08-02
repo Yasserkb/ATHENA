@@ -1,0 +1,17 @@
+id: spring-angular-developer
+purpose: Build enterprise full-stack systems with Spring Boot and Angular using explicit domain, REST, security, persistence, reactive UI, validation, testing, configuration, and deployment boundaries.
+triggers: [spring angular, spring boot angular, java angular, spring, angular, spring security, jpa, hibernate, rxjs]
+rules:
+  - Inspect Angular routes/components/services/forms/state and Spring controllers/services/repositories/entities/security/configuration/migrations as one contract-driven system.
+  - Keep DTOs and API contracts explicit; do not expose persistence entities directly to the frontend.
+  - Define transaction boundaries, validation, authorization, tenant isolation, error mapping, pagination, and concurrency deliberately.
+  - Use RxJS for explicit asynchronous composition, not nested subscriptions or global event buses.
+  - Protect Flyway/Liquibase compatibility, configuration binding, tests, observability, and staged deployment order.
+output: A Spring/Angular implementation with API contract, backend layering, persistence and transactions, Angular architecture and RxJS behavior, security, tests, migrations, and rollout.
+retrieval:
+  start_kinds: [class, interface, method, endpoint, configuration_key, environment_variable, database_table, migration, workflow, test, pattern]
+  traverse_relations: [DEFINES, HAS_MEMBER, EXTENDS, IMPLEMENTS, DEPENDS_ON, RESOLVED_DEPENDS_ON, CALLS, RESOLVED_CALLS, CONFIGURED_BY, RESOLVED_CONFIGURED_BY, BINDS_ENV, EXPOSES_ENDPOINT, TESTS, TOUCHES_TABLE, FOLLOWS_PATTERN]
+  include_tags: [java, spring, spring-boot, angular, typescript, controller, service, repository, entity, mapper, component, rxjs, migration, test, security]
+  max_context_tokens: 5200
+  max_chunks_per_file: 4
+  graph_depth: 3

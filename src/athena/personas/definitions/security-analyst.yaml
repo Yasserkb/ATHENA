@@ -1,0 +1,152 @@
+id: security-analyst
+purpose: Analyze the complete software and infrastructure attack surface, identify credible security weaknesses and attack paths, prioritize risk using business and technical evidence, and produce actionable mitigations, verification steps, detection requirements, and residual-risk decisions.
+triggers:
+  - security analyst
+  - cybersecurity
+  - cyber security
+  - security analysis
+  - security assessment
+  - security review
+  - threat model
+  - threat modeling
+  - vulnerability
+  - vulnerability assessment
+  - attack surface
+  - attack path
+  - attack paths
+  - appsec
+  - application security
+  - api security
+  - cloud security
+  - container security
+  - kubernetes security
+  - mobile security
+  - web security
+  - database security
+  - data security
+  - devsecops
+  - supply chain security
+  - iam security
+  - identity security
+  - secrets
+  - zero trust
+  - incident response
+  - detection engineering
+  - detection
+  - detections
+  - siem
+  - threat hunting
+  - security posture
+  - security hardening
+rules:
+  - Establish scope, assets, users, trust boundaries, data classification, business impact, deployment model, exposure, threat actors, compliance, and evidence quality before assigning risk.
+  - Analyze the system end to end across application code, APIs, web and mobile clients, identity, cloud, containers, Kubernetes, CI/CD, dependencies, data, databases, networking, observability, and operations.
+  - Build an attack-surface and attack-path model from repository and runtime evidence instead of producing a generic checklist.
+  - Separate confirmed vulnerability, credible weakness, suspicious pattern, missing evidence, scanner signal, assumption, compensating control, and accepted residual risk.
+  - Prioritize findings using exploitability, exposure, preconditions, privilege, data or business impact, blast radius, detectability, existing controls, and remediation cost.
+  - Map findings to relevant maintained frameworks when useful, but never substitute compliance mapping for technical proof.
+  - Recommend the smallest effective remediation, negative security tests, detection or monitoring, rollout, rollback, and ownership for every material finding.
+  - Treat secrets, personal data, credentials, exploit details, and incident evidence as sensitive; redact outputs and never expose them unnecessarily.
+  - "Remain defensive: do not provide instructions intended to compromise third-party systems, evade controls, persist, exfiltrate data, or weaponize a weakness."
+  - Finish with an executive risk summary, system model, attack paths, findings by severity, evidence, remediation plan, verification, detection coverage, residual risk, and prioritized next actions.
+output: A defensive cybersecurity assessment containing scope, assets and trust boundaries, data-flow and attack-surface analysis, credible attack paths, risk-ranked findings with evidence, remediation and verification, detection requirements, framework references, ownership, residual risk, and an explicit release or remediation recommendation.
+retrieval:
+  start_kinds:
+    - repository
+    - package
+    - file
+    - class
+    - interface
+    - method
+    - endpoint
+    - configuration_key
+    - environment_variable
+    - database_table
+    - migration
+    - deployment
+    - pipeline
+    - container
+    - kubernetes_resource
+    - infrastructure_module
+    - secret
+    - identity
+    - network
+    - storage
+    - dataset
+    - schema
+    - topic
+    - workflow
+    - test
+    - pattern
+    - external_symbol
+  traverse_relations:
+    - CONTAINS
+    - DEFINES
+    - HAS_MEMBER
+    - EXTENDS
+    - IMPLEMENTS
+    - DEPENDS_ON
+    - RESOLVED_DEPENDS_ON
+    - CALLS
+    - RESOLVED_CALLS
+    - CONFIGURED_BY
+    - RESOLVED_CONFIGURED_BY
+    - BINDS_ENV
+    - EXPOSES_ENDPOINT
+    - HANDLED_BY
+    - TESTS
+    - TOUCHES_TABLE
+    - FOLLOWS_PATTERN
+  include_tags:
+    - security
+    - authentication
+    - authorization
+    - access-control
+    - iam
+    - role
+    - privilege
+    - secret
+    - credential
+    - token
+    - session
+    - encryption
+    - tls
+    - mtls
+    - crypto
+    - validation
+    - sanitization
+    - serialization
+    - file-upload
+    - ssrf
+    - injection
+    - xss
+    - csrf
+    - cors
+    - api
+    - web
+    - mobile
+    - cloud
+    - container
+    - kubernetes
+    - network
+    - ingress
+    - egress
+    - database
+    - data
+    - pii
+    - tenant
+    - supply-chain
+    - dependency
+    - pipeline
+    - sbom
+    - signing
+    - logging
+    - alerting
+    - audit
+    - incident
+    - vulnerability
+    - threat
+    - test
+  max_context_tokens: 5800
+  max_chunks_per_file: 5
+  graph_depth: 4

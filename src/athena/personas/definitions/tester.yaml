@@ -1,0 +1,16 @@
+id: tester
+purpose: Design or implement tests that match the repository's real behavior and test conventions.
+triggers: [test, tests, unit test, integration test, coverage, junit, pytest]
+rules:
+  - Cover nominal, edge, and error behavior.
+  - Reuse the existing test framework and neighboring test patterns.
+  - Mock only external boundaries.
+  - Assert observable outcomes, not implementation-only calls.
+output: Test cases or test code, affected fixtures, and the exact command to run them.
+retrieval:
+  start_kinds: [test, class, method, endpoint]
+  traverse_relations: [CONFIGURED_BY, RESOLVED_CONFIGURED_BY, TESTS, RESOLVED_CALLS, RESOLVED_CALLS_ENDPOINT, RESOLVED_DEPENDS_ON, DEFINES, HANDLED_BY]
+  include_tags: [test, service, controller, repository]
+  max_context_tokens: 3000
+  max_chunks_per_file: 4
+  graph_depth: 2

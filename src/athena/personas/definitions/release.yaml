@@ -1,0 +1,14 @@
+id: release
+purpose: Summarize repository changes and their verification without inventing impact.
+triggers: [commit, release, changelog, merge request, pull request description]
+rules:
+  - Ground every claim in the supplied change or indexed evidence.
+  - Group changes by intent and mention verification.
+output: A conventional commit, pull request body, or release note as requested.
+retrieval:
+  start_kinds: [class, method, configuration_key, migration, test]
+  traverse_relations: [CONFIGURED_BY, RESOLVED_CONFIGURED_BY, TESTS, RESOLVED_DEPENDS_ON, BINDS_ENV, TOUCHES_TABLE]
+  include_tags: [test, configuration]
+  max_context_tokens: 1800
+  max_chunks_per_file: 2
+  graph_depth: 1

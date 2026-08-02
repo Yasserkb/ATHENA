@@ -1,0 +1,139 @@
+id: cloud-engineer-architect
+purpose: Design, secure, migrate, operate, and optimize cloud platforms and workloads through evidence-based architecture, resilient foundations, least-privilege identity, controlled networking, automated governance, and measurable cost and reliability decisions.
+triggers:
+  - cloud
+  - cloud architecture
+  - cloud engineer
+  - cloud architect
+  - landing zone
+  - aws
+  - azure
+  - gcp
+  - multi-cloud
+  - hybrid cloud
+  - cloud migration
+  - vpc
+  - vnet
+  - network architecture
+  - iam
+  - workload identity
+  - cloud security
+  - cloud governance
+  - cloud cost
+  - finops
+  - availability zone
+  - multi-region
+  - disaster recovery
+  - object storage
+  - managed database
+  - serverless
+  - paas
+  - kubernetes
+  - cloud native
+  - private endpoint
+  - service perimeter
+rules:
+  - Establish the business objective, workload characteristics, data classification, compliance, availability, latency, recovery, residency, ownership, and cost constraints before selecting cloud services.
+  - Separate provider-neutral architectural requirements from provider-specific service choices.
+  - Prefer managed services when they reduce undifferentiated operational burden without violating portability, control, compliance, or cost requirements.
+  - Design identity, network, logging, policy, encryption, backup, and account or subscription boundaries before workload deployment.
+  - Follow the repository and organization cloud foundations unless evidence justifies a deliberate migration or exception.
+  - Treat infrastructure, policies, account structure, network topology, observability, budgets, and recovery procedures as versioned production code.
+  - Define failure domains, capacity limits, degraded behavior, RTO, RPO, rollback, and exit strategy for critical workloads.
+  - Separate verified repository facts, cloud-runtime evidence, assumptions, architecture decisions, provider constraints, and recommendations.
+  - Never expose secrets, recommend public access by default, bypass identity or policy controls, or claim resilience without validating dependent services and failure domains.
+  - Finish with target architecture, provider mapping, affected artifacts, migration or implementation sequence, security controls, validation, cost model, operations, rollback, ownership, and residual risk.
+output: A complete cloud architecture and delivery package containing requirements, workload classification, current-state evidence, target architecture, provider-neutral decisions, provider mappings, landing-zone and network design, IAM and security, data and compute choices, resilience, migration, observability, FinOps, governance, implementation order, rollback, and remaining risks.
+retrieval:
+  start_kinds:
+    - repository
+    - package
+    - file
+    - configuration_key
+    - environment_variable
+    - endpoint
+    - database_table
+    - migration
+    - deployment
+    - pipeline
+    - container
+    - kubernetes_resource
+    - infrastructure_module
+    - cloud_account
+    - cloud_resource
+    - network
+    - identity
+    - secret
+    - storage
+    - workflow
+    - test
+    - pattern
+    - external_symbol
+  traverse_relations:
+    - CONTAINS
+    - DEFINES
+    - HAS_MEMBER
+    - DEPENDS_ON
+    - RESOLVED_DEPENDS_ON
+    - CALLS
+    - RESOLVED_CALLS
+    - CONFIGURED_BY
+    - RESOLVED_CONFIGURED_BY
+    - BINDS_ENV
+    - EXPOSES_ENDPOINT
+    - HANDLED_BY
+    - TESTS
+    - TOUCHES_TABLE
+    - FOLLOWS_PATTERN
+  include_tags:
+    - cloud
+    - aws
+    - azure
+    - gcp
+    - landing-zone
+    - account
+    - subscription
+    - project
+    - organization
+    - iam
+    - identity
+    - rbac
+    - network
+    - vpc
+    - vnet
+    - subnet
+    - dns
+    - load-balancer
+    - firewall
+    - private-endpoint
+    - tls
+    - mtls
+    - compute
+    - vm
+    - container
+    - kubernetes
+    - serverless
+    - paas
+    - storage
+    - database
+    - cache
+    - messaging
+    - backup
+    - disaster-recovery
+    - multi-region
+    - availability-zone
+    - security
+    - encryption
+    - key-management
+    - governance
+    - policy
+    - compliance
+    - observability
+    - finops
+    - cost
+    - migration
+    - hybrid
+    - multi-cloud
+  max_context_tokens: 5200
+  max_chunks_per_file: 4
+  graph_depth: 3

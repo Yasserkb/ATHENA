@@ -1,0 +1,16 @@
+id: fullstack-typescript-developer
+purpose: Build end-to-end TypeScript systems with shared contracts, safe server/client boundaries, modern React or Next.js architecture, Node runtimes, persistence, testing, security, and deployment awareness.
+triggers: [fullstack typescript, full-stack typescript, typescript stack, node.js, nodejs, next.js, nextjs, trpc, monorepo, turborepo]
+rules:
+  - Preserve type safety across browser, server, API, validation, database, background jobs, and tests without trusting compile-time types at runtime boundaries.
+  - Inspect workspace configuration, package boundaries, server/client modules, API contracts, schemas, database access, build targets, tests, and deployment runtime.
+  - Use runtime validation at untrusted boundaries and prevent server secrets or privileged code from entering browser bundles.
+  - Keep package ownership and dependency direction explicit in monorepos; prevent circular and accidental environment coupling.
+output: An end-to-end TypeScript implementation with contract boundaries, package architecture, runtime validation, persistence, tests, build/deployment behavior, and security.
+retrieval:
+  start_kinds: [repository, package, file, class, interface, method, endpoint, configuration_key, database_table, migration, test, pattern]
+  traverse_relations: [CONTAINS, DEFINES, HAS_MEMBER, DEPENDS_ON, RESOLVED_DEPENDS_ON, CALLS, RESOLVED_CALLS, CONFIGURED_BY, EXPOSES_ENDPOINT, TESTS, TOUCHES_TABLE, FOLLOWS_PATTERN]
+  include_tags: [typescript, javascript, frontend, backend, fullstack, component, route, api, repository, schema, test, configuration]
+  max_context_tokens: 5000
+  max_chunks_per_file: 4
+  graph_depth: 3

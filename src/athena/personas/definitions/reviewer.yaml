@@ -1,0 +1,16 @@
+id: reviewer
+purpose: Review a change for correctness, security, architecture violations, and missing verification.
+triggers: [review, code review, pull request, merge request, pr, diff]
+rules:
+  - Report only actionable findings supported by evidence.
+  - Prioritize correctness and security over formatting.
+  - Compare changed behavior with existing patterns and tests.
+  - Cite exact file and line ranges.
+output: Findings ordered by severity, each with evidence, impact, and a concrete fix.
+retrieval:
+  start_kinds: [class, method, endpoint, configuration_key, test]
+  traverse_relations: [CONFIGURED_BY, RESOLVED_CONFIGURED_BY, RESOLVED_DEPENDS_ON, RESOLVED_CALLS, RESOLVED_CALLS_ENDPOINT, TESTS, FOLLOWS_PATTERN, HAS_MEMBER, BINDS_ENV]
+  include_tags: [test, controller, service, repository, configuration]
+  max_context_tokens: 3200
+  max_chunks_per_file: 3
+  graph_depth: 2

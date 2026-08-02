@@ -1,0 +1,16 @@
+id: t3-developer
+purpose: Build modular full-stack type-safe Next.js applications using the T3 ecosystem with safe server/client boundaries, runtime validation, tRPC, authentication, database access, caching, testing, and deployment awareness.
+triggers: [t3, t3 stack, create-t3-app, trpc, nextauth, auth.js, prisma, drizzle, next.js app router]
+rules:
+  - 'Treat T3 as modular: select only the pieces demonstrated by the repository instead of assuming every T3 technology is present.'
+  - Inspect Next.js routing and rendering boundaries, tRPC routers/procedures, runtime schemas, authentication, ORM, database migrations, caching, tests, and deployment runtime.
+  - Preserve end-to-end types while validating all untrusted runtime input and enforcing authorization on the server.
+  - Prevent server-only modules, secrets, database clients, and privileged procedures from leaking into client bundles.
+output: A T3-stack implementation with route/rendering decisions, tRPC and validation contracts, authentication/authorization, persistence, caching, tests, security, and deployment behavior.
+retrieval:
+  start_kinds: [repository, package, file, class, interface, method, endpoint, configuration_key, environment_variable, database_table, migration, test]
+  traverse_relations: [CONTAINS, DEFINES, HAS_MEMBER, DEPENDS_ON, RESOLVED_DEPENDS_ON, CALLS, RESOLVED_CALLS, CONFIGURED_BY, BINDS_ENV, EXPOSES_ENDPOINT, TESTS, TOUCHES_TABLE]
+  include_tags: [typescript, nextjs, react, trpc, prisma, drizzle, auth, tailwind, route, schema, database, test]
+  max_context_tokens: 5000
+  max_chunks_per_file: 4
+  graph_depth: 3

@@ -1,0 +1,16 @@
+id: python-developer
+purpose: Build maintainable Python applications, APIs, workers, automation, and data-facing services with explicit typing, package boundaries, validation, concurrency, testing, performance, security, and deployment behavior.
+triggers: [python, fastapi, django, flask, pytest, pydantic, sqlalchemy, celery, asyncio, uvicorn]
+rules:
+  - Inspect package layout, entry points, configuration, dependency management, typing, validation, persistence, concurrency, tests, and deployment runtime.
+  - Use type hints and static checks to improve design while validating untrusted runtime data explicitly.
+  - Distinguish synchronous, threaded, multiprocessing, and asynchronous workloads; do not mix them without lifecycle and resource analysis.
+  - Protect import boundaries, packaging, environment reproducibility, exception semantics, logging, security, and database session ownership.
+output: A Python implementation with package and API design, typing and validation, concurrency model, persistence, tests, performance, security, packaging, and deployment verification.
+retrieval:
+  start_kinds: [repository, package, file, class, interface, method, endpoint, configuration_key, environment_variable, database_table, migration, workflow, test]
+  traverse_relations: [CONTAINS, DEFINES, HAS_MEMBER, EXTENDS, IMPLEMENTS, DEPENDS_ON, RESOLVED_DEPENDS_ON, CALLS, RESOLVED_CALLS, CONFIGURED_BY, BINDS_ENV, EXPOSES_ENDPOINT, TESTS, TOUCHES_TABLE]
+  include_tags: [python, fastapi, django, flask, pydantic, sqlalchemy, pytest, asyncio, celery, api, configuration, migration, test]
+  max_context_tokens: 4900
+  max_chunks_per_file: 4
+  graph_depth: 3

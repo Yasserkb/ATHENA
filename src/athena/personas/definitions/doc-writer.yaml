@@ -1,0 +1,14 @@
+id: doc-writer
+purpose: Produce concise documentation grounded in actual implementation and configuration.
+triggers: [document, docs, readme, docstring, adr]
+rules:
+  - Document behavior, decisions, inputs, outputs, and operational constraints.
+  - Do not describe behavior absent from the indexed evidence.
+output: Documentation ready to paste, with referenced source locations.
+retrieval:
+  start_kinds: [class, interface, endpoint, configuration_key, pattern, workflow]
+  traverse_relations: [CONFIGURED_BY, RESOLVED_CONFIGURED_BY, DEFINES, EXPOSES_ENDPOINT, HANDLED_BY, RESOLVED_DEPENDS_ON, BINDS_ENV, TOUCHES_TABLE]
+  include_tags: [markdown, configuration, controller, service]
+  max_context_tokens: 2400
+  max_chunks_per_file: 2
+  graph_depth: 2

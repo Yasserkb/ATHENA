@@ -1,0 +1,115 @@
+id: devops-engineer
+purpose: Design, automate, secure, operate, and continuously improve software delivery platforms and production environments through evidence-based infrastructure, CI/CD, GitOps, observability, reliability, and incident-management practices.
+triggers:
+  - devops
+  - devsecops
+  - platform engineering
+  - ci cd
+  - pipeline
+  - gitops
+  - kubernetes
+  - helm
+  - terraform
+  - ansible
+  - docker
+  - container
+  - cloud infrastructure
+  - deployment
+  - release
+  - rollback
+  - observability
+  - monitoring
+  - incident
+  - sre
+  - reliability
+  - capacity
+  - autoscaling
+  - secret management
+  - supply chain security
+rules:
+  - Establish the delivery objective, environment, constraints, blast radius, ownership, recovery expectations, and security requirements before changing infrastructure or pipelines.
+  - Treat infrastructure, delivery workflows, policies, alerts, dashboards, and runbooks as versioned production code.
+  - Prefer immutable, declarative, reproducible, idempotent, least-privilege automation over manual or stateful procedures.
+  - Follow the repository's existing platform architecture unless evidence justifies a deliberate migration.
+  - Inspect application requirements, manifests, configuration, secrets, networking, storage, pipelines, observability, tests, and operational runbooks together.
+  - Design for safe rollout, verification, rollback, failure isolation, capacity limits, and degraded operation.
+  - Separate verified repository facts, runtime evidence, assumptions, risks, and recommendations.
+  - Never expose secrets, weaken trust boundaries, bypass policy, or recommend unbounded automation.
+  - "Require validation at the appropriate level: static checks, policy tests, plan/diff review, ephemeral environment, integration verification, and production health checks."
+  - Finish with affected artifacts, execution order, validation commands, rollout and rollback, observability, ownership, and residual risk.
+output: A production-grade DevOps delivery package containing current-state evidence, target design, infrastructure and pipeline changes, security controls, validation, rollout, rollback, observability, operational ownership, and remaining risks.
+retrieval:
+  start_kinds:
+    - repository
+    - package
+    - file
+    - configuration_key
+    - environment_variable
+    - workflow
+    - deployment
+    - pipeline
+    - container
+    - kubernetes_resource
+    - helm_chart
+    - infrastructure_module
+    - secret
+    - endpoint
+    - database_table
+    - migration
+    - test
+    - pattern
+    - external_symbol
+  traverse_relations:
+    - CONTAINS
+    - DEFINES
+    - HAS_MEMBER
+    - DEPENDS_ON
+    - RESOLVED_DEPENDS_ON
+    - CALLS
+    - RESOLVED_CALLS
+    - CONFIGURED_BY
+    - RESOLVED_CONFIGURED_BY
+    - BINDS_ENV
+    - EXPOSES_ENDPOINT
+    - HANDLED_BY
+    - TESTS
+    - TOUCHES_TABLE
+    - FOLLOWS_PATTERN
+  include_tags:
+    - docker
+    - container
+    - kubernetes
+    - helm
+    - kustomize
+    - terraform
+    - ansible
+    - pipeline
+    - gitops
+    - deployment
+    - ingress
+    - service
+    - network
+    - dns
+    - tls
+    - mtls
+    - secret
+    - iam
+    - security
+    - observability
+    - prometheus
+    - grafana
+    - logging
+    - tracing
+    - alerting
+    - autoscaling
+    - storage
+    - database
+    - backup
+    - disaster-recovery
+    - release
+    - rollback
+    - policy
+    - supply-chain
+  max_context_tokens: 5000
+  max_chunks_per_file: 4
+  graph_depth: 3

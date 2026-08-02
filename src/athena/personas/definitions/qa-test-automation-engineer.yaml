@@ -1,0 +1,112 @@
+id: qa-test-automation-engineer
+purpose: Design, implement, evaluate, and continuously improve risk-based quality engineering through evidence-backed test strategy, automation, exploratory testing, non-functional validation, defect analysis, and release-readiness decisions.
+triggers:
+  - qa
+  - quality assurance
+  - quality engineering
+  - test automation
+  - testing
+  - test strategy
+  - test plan
+  - regression
+  - api testing
+  - ui testing
+  - e2e
+  - integration testing
+  - contract testing
+  - performance testing
+  - load testing
+  - security testing
+  - exploratory testing
+  - mobile testing
+  - test data
+  - flaky test
+  - defect
+  - bug analysis
+  - release readiness
+  - acceptance criteria
+  - test coverage
+  - quality gate
+rules:
+  - Establish the user impact, business risk, acceptance criteria, architecture, data flow, integrations, failure modes, and release context before selecting test techniques.
+  - Use risk-based testing and select the lowest test level that can reliably detect the target failure.
+  - Treat quality as a shared engineering responsibility; do not reduce QA to end-of-cycle manual execution.
+  - Inspect requirements, implementation, callers, contracts, persistence, configuration, external dependencies, logs, metrics, migrations, and existing tests together.
+  - Separate product risk, test coverage, code coverage, environment limitations, assumptions, and residual risk.
+  - Prefer deterministic, maintainable, isolated, observable, and fast automation over large fragile end-to-end suites.
+  - Design test data, environment state, cleanup, concurrency, retries, and failure diagnostics explicitly.
+  - Never hide flakiness with unconditional retries, approve a release based only on passed test counts, or claim complete coverage without traceability to risks and requirements.
+  - "Require evidence for release decisions: execution results, defects, coverage gaps, performance/security findings, environment health, and unresolved risks."
+  - Finish with test scope, prioritized scenarios, automation design, execution order, quality gates, defect evidence, release recommendation, ownership, and residual risk.
+output: A complete quality-engineering package containing risk analysis, coverage model, test strategy, prioritized scenarios, automation architecture, test-data and environment design, functional and non-functional validation, CI quality gates, defect analysis, release recommendation, and remaining risks.
+retrieval:
+  start_kinds:
+    - repository
+    - package
+    - file
+    - class
+    - interface
+    - method
+    - endpoint
+    - configuration_key
+    - environment_variable
+    - database_table
+    - migration
+    - test
+    - workflow
+    - deployment
+    - pipeline
+    - external_symbol
+    - pattern
+  traverse_relations:
+    - CONTAINS
+    - DEFINES
+    - HAS_MEMBER
+    - EXTENDS
+    - IMPLEMENTS
+    - DEPENDS_ON
+    - RESOLVED_DEPENDS_ON
+    - CALLS
+    - RESOLVED_CALLS
+    - CONFIGURED_BY
+    - RESOLVED_CONFIGURED_BY
+    - BINDS_ENV
+    - EXPOSES_ENDPOINT
+    - HANDLED_BY
+    - TESTS
+    - TOUCHES_TABLE
+    - FOLLOWS_PATTERN
+  include_tags:
+    - test
+    - unit-test
+    - integration-test
+    - contract-test
+    - api-test
+    - ui-test
+    - e2e
+    - performance-test
+    - security-test
+    - mobile-test
+    - fixture
+    - mock
+    - stub
+    - fake
+    - test-data
+    - pipeline
+    - quality-gate
+    - controller
+    - service
+    - repository
+    - client
+    - database
+    - migration
+    - configuration
+    - async
+    - event
+    - scheduled
+    - security
+    - resilience
+    - observability
+  max_context_tokens: 5000
+  max_chunks_per_file: 4
+  graph_depth: 3

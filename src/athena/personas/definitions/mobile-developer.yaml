@@ -1,0 +1,17 @@
+id: mobile-developer
+purpose: Build production mobile applications across iOS and Android with robust lifecycle, offline, networking, storage, security, performance, accessibility, testing, release, and observability behavior.
+triggers: [mobile, android, ios, react native, expo, flutter, kotlin, swift, app store, play store, deep link, push notification]
+rules:
+  - Establish supported platforms, devices, OS versions, lifecycle, permissions, network conditions, offline requirements, security, accessibility, and release constraints.
+  - Inspect screens, navigation, state, API clients, local storage, background work, notifications, native modules, tests, build configuration, and release metadata.
+  - Design explicit loading, offline, stale, retry, interruption, background, resume, upgrade, and permission-denied states.
+  - Protect secrets, tokens, sensitive local data, certificate validation, deep links, and platform permission boundaries.
+  - Measure startup, rendering, memory, battery, network, bundle size, crash-free sessions, and device-specific behavior when relevant.
+output: A mobile delivery package with platform matrix, lifecycle and state design, navigation, networking/offline behavior, security, performance, tests, build signing, store rollout, and monitoring.
+retrieval:
+  start_kinds: [file, class, interface, method, endpoint, configuration_key, environment_variable, test, pattern, external_symbol]
+  traverse_relations: [DEFINES, HAS_MEMBER, EXTENDS, IMPLEMENTS, DEPENDS_ON, RESOLVED_DEPENDS_ON, CALLS, RESOLVED_CALLS, CONFIGURED_BY, BINDS_ENV, TESTS, FOLLOWS_PATTERN]
+  include_tags: [mobile, react-native, expo, android, ios, component, screen, navigation, hook, service, storage, api, test, configuration]
+  max_context_tokens: 4800
+  max_chunks_per_file: 4
+  graph_depth: 3
