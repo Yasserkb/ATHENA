@@ -1,0 +1,93 @@
+name: container
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Validate Dockerfile
+        run: docker build --check .
+
+      - name: Build local image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          push: false
+          tags: athena-codegraph:ci
+          build-args: |
+            VERSION=ci
+            VCS_REF=${{ github.sha }}
+            BUILD_DATE=${{ github.event.repository.updated_at }}
+            SOURCE_URL=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verify non-root image metadata
+        run: |
+          test "$(docker image inspect athena-codegraph:ci --format '{{.Config.User}}')" = "10001:10001"
+          test -n "$(docker image inspect athena-codegraph:ci --format '{{json .Config.Healthcheck}}')"
+
+      - name: Smoke-test CLI and read-only workspace
+        run: |
+          docker run --rm athena-codegraph:ci version
+          docker volume create athena-ci-state
+          docker run --rm \
+            --read-only \
+            --network none \
+            --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            --mount type=bind,source="$PWD/examples/benchmark-fixture",target=/workspace,readonly \
+            --mount type=volume,source=athena-ci-state,target=/data \
+            --tmpfs /tmp:rw,noexec,nosuid,nodev,size=64m \
+            athena-codegraph:ci scan --root /workspace --json
+
+      - name: Verify container health check
+        run: |
+          container_id="$(docker run --detach \
+            --read-only \
+            --network none \
+            --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            --health-interval 2s \
+            --health-timeout 5s \
+            --health-start-period 2s \
+            --mount type=bind,source="$PWD/examples/benchmark-fixture",target=/workspace,readonly \
+            --mount type=volume,source=athena-ci-state,target=/data \
+            --tmpfs /tmp:rw,noexec,nosuid,nodev,size=64m \
+            athena-codegraph:ci daemon run --root /workspace)"
+          trap 'docker rm --force "$container_id" >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 20); do
+            status="$(docker inspect --format '{{.State.Health.Status}}' "$container_id")"
+            if [ "$status" = "healthy" ]; then
+              exit 0
+            fi
+            if [ "$status" = "unhealthy" ]; then
+              docker inspect "$container_id"
+              exit 1
+            fi
+            sleep 1
+          done
+          docker inspect "$container_id"
+          exit 1
+
+      - name: Scan image for critical vulnerabilities
+        uses: anchore/scan-action@v7
+        with:
+          image: athena-codegraph:ci
+          fail-build: true
+          severity-cutoff: critical
+          output-format: table

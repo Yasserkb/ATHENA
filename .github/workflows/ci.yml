@@ -1,0 +1,60 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[dev,mcp,tokenizers,claude-tokenizer]"
+      - run: python -m ruff check src tests scripts
+      - run: python -m ruff format --check src tests scripts
+      - run: python -m mypy src/athena
+      - run: python -m pytest --cov=athena --cov-report=term-missing
+      - run: python scripts/check_personas.py
+      - run: python scripts/check_adapters.py
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install build
+      - run: python -m build
+
+  benchmark-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -e ".[dev,mcp]"
+      - run: >-
+          athena benchmark benchmarks/representative.yaml
+          --root examples/benchmark-fixture
+          --scan --gate --json
+          --output benchmark-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: athena-benchmark-report
+          path: benchmark-report.json
