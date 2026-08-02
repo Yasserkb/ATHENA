@@ -1,0 +1,19 @@
+# Merge into a trusted repository's .codex/config.toml.
+[mcp_servers.athena]
+command = "athena"
+args = [
+  "mcp",
+  "--root",
+  ".",
+  "--mode",
+  "economy",
+  "--mcp-host",
+  "codex",
+  "--daemon",
+]
+cwd = "."
+enabled = true
+enabled_tools = ["repository_context"]
+default_tools_approval_mode = "approve"
+startup_timeout_sec = 20
+tool_timeout_sec = 60

@@ -1,0 +1,6 @@
+---
+description: Athena local code graph
+alwaysApply: true
+---
+
+Use `athena_build_context` before repository changes and follow only the returned persona and evidence.
