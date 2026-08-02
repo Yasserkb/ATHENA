@@ -1,0 +1,48 @@
+name: athena-codegraph
+
+services:
+  athena:
+    image: ${ATHENA_IMAGE:-athena-codegraph:local}
+    build:
+      context: .
+      args:
+        VERSION: ${ATHENA_VERSION:-0.1.0}
+        VCS_REF: ${VCS_REF:-local}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        SOURCE_URL: ${SOURCE_URL:-https://github.com/OWNER/athena-codegraph}
+    command:
+      # A detached Compose service cannot provide an MCP STDIO session. Run the watcher in the
+      # foreground instead; clients start their own short-lived MCP STDIO process when needed.
+      - daemon
+      - run
+      - --root
+      - /workspace
+    stdin_open: true
+    tty: false
+    read_only: true
+    network_mode: none
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: ${ATHENA_MEMORY_LIMIT:-1g}
+    cpus: ${ATHENA_CPU_LIMIT:-2.0}
+    environment:
+      ATHENA_ROOT: /workspace
+      ATHENA_STATE_DIR: /data
+      PYTHONDONTWRITEBYTECODE: "1"
+    volumes:
+      - type: bind
+        source: ${ATHENA_WORKSPACE:-.}
+        target: /workspace
+        read_only: true
+      - type: volume
+        source: athena-data
+        target: /data
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
+
+volumes:
+  athena-data:
+    name: ${ATHENA_VOLUME_NAME:-athena-codegraph-data}
