@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "athena": {
+      "type": "stdio",
+      "command": "athena",
+      "args": [
+        "mcp",
+        "--root",
+        "${workspaceFolder}",
+        "--copilot",
+        "--daemon",
+        "--mcp-host",
+        "vscode-copilot"
+      ]
+    }
+  }
+}

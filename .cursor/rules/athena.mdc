@@ -1,0 +1,16 @@
+---
+description: Athena local code graph
+alwaysApply: true
+---
+
+# Athena CodeGraph
+
+Use Athena as the repository context layer. Do not load the complete Athena framework into the
+conversation.
+
+For repository work:
+1. In economy mode, call `repository_context` once before broad exploration.
+2. Reuse its paths, line ranges, relationships, and evidence.
+3. Use its continuation token only when the first result is insufficient.
+4. Verify exact source before editing when confidence is low.
+5. Skip Athena for general questions and trivial edits in an already-provided file.

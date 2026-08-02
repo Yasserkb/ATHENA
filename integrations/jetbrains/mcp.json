@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "athena": {
+      "type": "stdio",
+      "command": "athena",
+      "args": [
+        "mcp",
+        "--root",
+        "REPLACE_WITH_ABSOLUTE_PROJECT_PATH",
+        "--copilot",
+        "--daemon",
+        "--mcp-host",
+        "jetbrains-copilot"
+      ]
+    }
+  }
+}
