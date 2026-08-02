@@ -94,6 +94,7 @@ class RetrievalService:
             self.config.tokenization.copilot_model_provider,
         )
         generation = self.store.index_generation()
+        repository_token_estimate = self.store.repository_token_estimate()
         if generation != self._observed_generation:
             self._bundle_cache.invalidate()
             self._observed_generation = generation
@@ -142,6 +143,7 @@ class RetrievalService:
                     "accounted_bytes": cached.accounted_bytes,
                     "estimated_input_ai_credits": cached.estimated_input_ai_credits,
                     "monthly_ai_credit_budget": cached.monthly_ai_credit_budget,
+                    **_observability_payload(cached, repository_token_estimate),
                 },
             )
             return cached
@@ -307,6 +309,7 @@ class RetrievalService:
                 "response_representation": bundle.response_representation,
                 "continuation": bool(bundle.continuation_token),
                 "incremental_files_scanned": bundle.incremental_files_scanned,
+                **_observability_payload(bundle, repository_token_estimate),
             },
         )
         self._bundle_cache.put(cache_key, bundle, duration_ms)
@@ -602,6 +605,28 @@ def _compact_source_chunk(chunk: Chunk, max_lines: int) -> Chunk:
         chunk.language,
         chunk.tags,
     )
+
+
+def _observability_payload(bundle: ContextBundle, repository_tokens: int) -> dict[str, object]:
+    delivered = bundle.provider_tokens or bundle.estimated_tokens
+    return {
+        "repository_token_estimate": repository_tokens,
+        "estimated_tokens_avoided": max(0, repository_tokens - delivered),
+        "selected_evidence": [
+            {
+                "chunk_id": hit.chunk.chunk_id,
+                "symbol_id": hit.chunk.symbol_id,
+                "path": hit.chunk.path,
+                "start_line": hit.chunk.start_line,
+                "end_line": hit.chunk.end_line,
+                "score": hit.score,
+                "graph_distance": hit.graph_distance,
+                "reasons": list(hit.reasons),
+            }
+            for hit in bundle.hits
+        ],
+        "architecture": list(bundle.architecture[:24]),
+    }
 
 
 def _truncate_chunk(chunk: Chunk, tokens: int) -> Chunk:

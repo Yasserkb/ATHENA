@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Athena Observatory</title>
+    <meta
+      name="description"
+      content="Local control room for Athena repository health, context efficiency, and knowledge graphs."
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-a"></div>
+    <div class="ambient ambient-b"></div>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"><span>Α</span></div>
+          <div>
+            <strong>ATHENA</strong>
+            <small>OBSERVATORY</small>
+          </div>
+        </div>
+
+        <div class="side-label">
+          <span>Linked repositories</span>
+          <button class="icon-button" id="show-add-project" aria-label="Add repository">+</button>
+        </div>
+        <nav class="project-list" id="project-list" aria-label="Athena repositories"></nav>
+
+        <div class="sidebar-footer">
+          <div class="live-indicator"><i></i><span>Local telemetry</span></div>
+          <p>Private by design. No repository data leaves this machine.</p>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <div class="eyebrow">SYSTEM OVERVIEW <span>/</span> <b id="breadcrumb">ALL PROJECTS</b></div>
+            <h1>Context intelligence,<br /><em>made visible.</em></h1>
+          </div>
+          <div class="topbar-actions">
+            <div class="updated"><span>LAST SYNC</span><b id="last-sync">—</b></div>
+            <button class="refresh-button" id="refresh" aria-label="Refresh dashboard">
+              <span aria-hidden="true">↻</span> Refresh
+            </button>
+          </div>
+        </header>
+
+        <section class="kpi-grid" aria-label="Athena totals">
+          <article class="kpi-card kpi-primary">
+            <div class="kpi-top"><span>TOKENS AVOIDED</span><i class="trend">LIVE</i></div>
+            <strong id="total-saved">—</strong>
+            <div class="kpi-bottom">
+              <span id="savings-rate">— efficiency</span>
+              <button class="info-button" id="show-methodology" aria-label="Explain token savings">i</button>
+            </div>
+            <div class="meter"><i id="savings-meter"></i></div>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-top"><span>CONTEXT REQUESTS</span><i class="signal signal-cyan"></i></div>
+            <strong id="total-requests">—</strong>
+            <div class="kpi-bottom"><span>Measured retrievals</span></div>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-top"><span>GRAPH SCALE</span><i class="signal signal-violet"></i></div>
+            <strong id="graph-scale">—</strong>
+            <div class="kpi-bottom"><span id="edge-scale">— relationships</span></div>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-top"><span>FLEET HEALTH</span><i class="signal signal-lime"></i></div>
+            <strong id="fleet-health">—</strong>
+            <div class="kpi-bottom"><span id="fleet-caption">Waiting for indexes</span></div>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <article class="panel efficiency-panel">
+            <div class="panel-head">
+              <div>
+                <span class="panel-kicker">CONTEXT EFFICIENCY</span>
+                <h2>Full repository vs. Athena context</h2>
+              </div>
+              <div class="legend">
+                <span><i class="dot baseline-dot"></i>Full index</span>
+                <span><i class="dot context-dot"></i>Athena</span>
+              </div>
+            </div>
+            <div class="efficiency-body">
+              <div class="efficiency-chart-wrap">
+                <canvas id="efficiency-chart" aria-label="Token efficiency history"></canvas>
+                <div class="empty-chart" id="empty-chart">Context requests will appear here.</div>
+              </div>
+              <div class="efficiency-score">
+                <span>SELECTIVITY</span>
+                <strong id="selectivity">—</strong>
+                <p>of the full indexed context was filtered out before reaching the model.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel health-panel">
+            <div class="panel-head compact">
+              <div>
+                <span class="panel-kicker">PROJECT PULSE</span>
+                <h2 id="project-title">Select a repository</h2>
+              </div>
+              <span class="health-pill" id="project-health">UNKNOWN</span>
+            </div>
+            <div class="health-score-wrap">
+              <div class="health-ring" id="health-ring"><strong id="health-score">—</strong><span>/100</span></div>
+              <div>
+                <b id="health-message">Waiting for project telemetry.</b>
+                <p id="project-root">—</p>
+              </div>
+            </div>
+            <div class="micro-stats">
+              <div><span>INDEX</span><b id="index-state">—</b></div>
+              <div><span>DAEMON</span><b id="daemon-state">—</b></div>
+              <div><span>GENERATION</span><b id="generation">—</b></div>
+              <div><span>FILES</span><b id="file-count">—</b></div>
+            </div>
+          </article>
+
+          <article class="panel graph-panel">
+            <div class="panel-head">
+              <div>
+                <span class="panel-kicker">KNOWLEDGE GRAPH</span>
+                <h2>Evidence paths and architecture</h2>
+              </div>
+              <div class="segmented" role="group" aria-label="Graph view">
+                <button class="active" data-graph-mode="retrieval">Latest retrieval</button>
+                <button data-graph-mode="overview">Project map</button>
+              </div>
+            </div>
+            <div class="graph-stage">
+              <canvas id="graph-canvas" aria-label="Interactive Athena knowledge graph"></canvas>
+              <div class="graph-empty" id="graph-empty">
+                <b>No retrieval trace yet</b>
+                <span>New context requests will record the exact evidence graph used.</span>
+              </div>
+              <div class="graph-hint">Scroll to zoom · drag nodes to inspect</div>
+              <div class="node-tooltip" id="node-tooltip" role="status"></div>
+            </div>
+            <div class="graph-footer">
+              <div class="graph-stat"><span>NODES</span><b id="detail-nodes">—</b></div>
+              <div class="graph-stat"><span>EDGES</span><b id="detail-edges">—</b></div>
+              <div class="graph-stat"><span>CONFIDENCE</span><b id="detail-confidence">—</b></div>
+              <div class="graph-stat wide"><span>ACTIVE PERSONA</span><b id="detail-persona">—</b></div>
+            </div>
+          </article>
+
+          <article class="panel activity-panel">
+            <div class="panel-head">
+              <div>
+                <span class="panel-kicker">LIVE ACTIVITY</span>
+                <h2>Index and retrieval operations</h2>
+              </div>
+              <span class="activity-count" id="activity-count">0 EVENTS</span>
+            </div>
+            <div class="activity-list" id="activity-list"></div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="add-project-dialog">
+      <form method="dialog" id="add-project-form">
+        <button class="dialog-close" value="cancel" aria-label="Close">×</button>
+        <span class="panel-kicker">LINK REPOSITORY</span>
+        <h2>Add an Athena project</h2>
+        <p>Enter the absolute path to a repository that has been initialized with Athena.</p>
+        <label for="project-path">Repository root</label>
+        <input id="project-path" name="root" placeholder="D:\code\my-project" autocomplete="off" required />
+        <div class="form-error" id="form-error" role="alert"></div>
+        <button class="primary-button" value="default">Connect project</button>
+      </form>
+    </dialog>
+
+    <dialog id="methodology-dialog">
+      <form method="dialog" class="methodology-content">
+        <button class="dialog-close" value="cancel" aria-label="Close">×</button>
+        <span class="panel-kicker">MEASUREMENT MODEL</span>
+        <h2>What “tokens avoided” means</h2>
+        <div class="formula">
+          <span>FULL INDEX BASELINE</span><b>−</b><span>ATHENA CONTEXT</span><b>=</b><strong>AVOIDED TOKENS</strong>
+        </div>
+        <p id="methodology-copy">
+          Athena compares each bounded context response with an estimate of sending every indexed file.
+        </p>
+        <div class="methodology-note">
+          This is a local context-efficiency estimate—not a provider invoice or a guaranteed billing reduction.
+        </div>
+        <button class="primary-button" value="close">Understood</button>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status"></div>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

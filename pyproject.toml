@@ -41,6 +41,7 @@ where = ["src"]
 "athena" = ["py.typed"]
 "athena.personas.definitions" = ["*.yaml"]
 "athena.personas.knowledge" = ["*/*.md"]
+"athena.observatory" = ["static/*"]
 
 [tool.pytest.ini_options]
 addopts = "-q --strict-markers"

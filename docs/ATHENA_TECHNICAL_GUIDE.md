@@ -677,6 +677,53 @@ Evaluation tooling measures persona routing, path precision/recall, reciprocal r
 context size. Benchmarks support cold/warm paths, full/economy modes, output reports, and configured
 release gates. Graph export supports JSON, GraphML, and Mermaid.
 
+### 17.1 Athena Observatory
+
+The Observatory is a dependency-free local HTTP application implemented in
+`src/athena/observatory/`. It has four layers:
+
+1. `ProjectRegistry` stores repository roots and their explicit SQLite index paths in a small
+   versioned JSON file. Native registration defaults to `~/.athena/observatory.json`.
+2. `ObservatoryService` opens each registered database independently and aggregates metadata,
+   daemon health, metrics, token efficiency, node-kind counts, and bounded graph views.
+3. `ObservatoryHTTPServer` exposes same-origin JSON endpoints and packaged static assets from a
+   threaded standard-library server. It binds to `127.0.0.1` by default and emits restrictive CSP,
+   framing, referrer, cache, and content-type headers.
+4. The static dashboard renders responsive fleet status, efficiency history, recent activity, and
+   an interactive canvas graph without external scripts, fonts, analytics, or CDNs.
+
+The JSON surface is deliberately small:
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/health` | Local server liveness |
+| `GET /api/overview` | Cross-project health and savings totals |
+| `GET /api/projects/{id}` | Detailed status, activity, and bounded graphs |
+| `POST /api/projects` | Register a local repository and optional external index path |
+| `DELETE /api/projects/{id}` | Remove only the registry link, never the repository or index |
+
+Every completed context metric records a bounded observability trace: selected chunk and symbol
+IDs, paths and line ranges, scores, graph distances, reasons, and derived architecture lines. Task
+text remains excluded. The latest trace seeds a one-hop evidence graph; older metrics that predate
+this field remain readable and simply show no retrieval trace.
+
+Token efficiency uses a named counterfactual baseline:
+
+```text
+repository_token_estimate = ceil(sum(indexed file size_bytes) / 3.6)
+tokens_avoided            = max(0, repository_token_estimate - delivered_context_tokens)
+savings_rate              = sum(tokens_avoided) / sum(repository_token_estimate)
+```
+
+The file table is used instead of chunks so overlap cannot double-count source. The delivered side
+uses provider tokens when available, otherwise Athena's existing serialized-payload estimate. This
+measures context avoided versus submitting the full index once per request; it must not be described
+as exact API billing savings.
+
+Start natively with `athena observatory start --root PROJECT`. The Compose `observatory` profile
+serves the mounted workspace at `127.0.0.1:8765`, shares the external `/data` volume, and applies
+separate CPU and memory limits.
+
 ## 18. Configuration reference
 
 The complete example is `config.example.yaml`. Important groups are:

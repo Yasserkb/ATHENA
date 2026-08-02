@@ -34,6 +34,7 @@ from athena.indexing.scanner import git_head
 from athena.indexing.semantic import SemanticPluginRegistry
 from athena.integrations import generate_adapters
 from athena.mcp_envelope import MCPHost, host_envelope_profile
+from athena.observatory import ProjectRegistry, run_observatory
 from athena.orchestrator import AthenaRuntime
 from athena.personas import install_persona_knowledge
 from athena.tokenization import TokenizerProvider
@@ -45,7 +46,9 @@ app = typer.Typer(
     pretty_exceptions_enable=False,
 )
 daemon_app = typer.Typer(help="Run and manage the persistent repository watcher.")
+observatory_app = typer.Typer(help="Run the local multi-repository Athena dashboard.")
 app.add_typer(daemon_app, name="daemon")
+app.add_typer(observatory_app, name="observatory")
 
 RootOption = Annotated[Path, typer.Option("--root", "-r", help="Repository root")]
 
@@ -90,6 +93,74 @@ def init(
         typer.echo(f"Installed {path.relative_to(root)}")
     for path in generate_adapters(root):
         typer.echo(f"Generated {path.relative_to(root)}")
+    registered = ProjectRegistry().add(root)
+    typer.echo(f"Registered {registered.root} with Athena Observatory")
+
+
+@observatory_app.command("start")
+def observatory_start(
+    root: RootOption = Path("."),
+    host: Annotated[
+        str, typer.Option("--host", help="Listening interface; keep 127.0.0.1 for local-only use")
+    ] = "127.0.0.1",
+    port: Annotated[int, typer.Option("--port", min=0, max=65535)] = 8765,
+    open_browser: Annotated[
+        bool, typer.Option("--open/--no-open", help="Open the dashboard in the default browser")
+    ] = True,
+    registry: Annotated[
+        Path | None, typer.Option("--registry", help="Override the local project registry path")
+    ] = None,
+) -> None:
+    """Start Athena Observatory and register the selected repository."""
+
+    def action() -> None:
+        run_observatory(
+            _root(root),
+            host=host,
+            port=port,
+            open_browser=open_browser,
+            registry_path=registry,
+        )
+
+    _run(action)
+
+
+@observatory_app.command("add")
+def observatory_add(
+    root: Annotated[Path, typer.Argument(help="Repository root")],
+    database: Annotated[
+        Path | None,
+        typer.Option("--database", help="Explicit SQLite index path for external state"),
+    ] = None,
+    registry: Annotated[Path | None, typer.Option("--registry")] = None,
+) -> None:
+    """Add or refresh a repository in the Observatory registry."""
+
+    def action() -> None:
+        entry = ProjectRegistry(registry).add(_root(root), database)
+        typer.echo(json.dumps(entry.to_dict(), indent=2))
+
+    _run(action)
+
+
+@observatory_app.command("list")
+def observatory_list(
+    registry: Annotated[Path | None, typer.Option("--registry")] = None,
+) -> None:
+    """List repositories registered with Athena Observatory."""
+    entries = [entry.to_dict() for entry in ProjectRegistry(registry).all()]
+    typer.echo(json.dumps(entries, indent=2))
+
+
+@observatory_app.command("remove")
+def observatory_remove(
+    project_id: Annotated[str, typer.Argument(help="Project id from observatory list")],
+    registry: Annotated[Path | None, typer.Option("--registry")] = None,
+) -> None:
+    """Remove a repository from the Observatory without deleting its Athena index."""
+    if not ProjectRegistry(registry).remove(project_id):
+        raise typer.BadParameter(f"Unknown Observatory project: {project_id}")
+    typer.echo(f"Removed {project_id}")
 
 
 @app.command()

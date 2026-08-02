@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import sqlite3
 from collections.abc import Iterable, Iterator, Sequence
 from contextlib import contextmanager
@@ -1059,6 +1060,198 @@ class SQLiteStore:
             row = self.db.execute(f"SELECT COUNT(*) count FROM {table}").fetchone()
             result[table] = int(row["count"])
         return result
+
+    def repository_token_estimate(self) -> int:
+        """Estimate the tokens required to submit every indexed source file once.
+
+        File sizes avoid double-counting overlap between adjacent chunks. The divisor matches
+        Athena's provider-neutral UTF-8 token estimator.
+        """
+        row = self.db.execute("SELECT COALESCE(SUM(size_bytes), 0) bytes FROM files").fetchone()
+        size_bytes = int(row["bytes"] or 0)
+        return math.ceil(size_bytes / 3.6) if size_bytes else 0
+
+    def observatory_metrics(
+        self, repository: str | None = None, limit: int = 30
+    ) -> dict[str, Any]:
+        """Return bounded activity and token-efficiency data for the local Observatory."""
+        where = " WHERE repository=?" if repository else ""
+        params: tuple[Any, ...] = (repository,) if repository else ()
+        rows = list(
+            self.db.execute(
+                f"SELECT created_at, operation, repository, duration_ms, estimated_tokens, "
+                f"result_count, payload FROM metrics{where} ORDER BY id DESC",
+                params,
+            )
+        )
+        current_baseline = self.repository_token_estimate()
+        context_rows: list[dict[str, Any]] = []
+        delivered = 0
+        baseline = 0
+        cache_hits = 0
+        confidence_total = 0.0
+        confidence_samples = 0
+        for row in rows:
+            if row["operation"] != "context":
+                continue
+            payload = json.loads(row["payload"] or "{}")
+            used = int(row["estimated_tokens"] or 0)
+            request_baseline = int(payload.get("repository_token_estimate") or current_baseline)
+            avoided = int(
+                payload.get("estimated_tokens_avoided") or max(0, request_baseline - used)
+            )
+            delivered += used
+            baseline += request_baseline
+            cache_hits += int(bool(payload.get("cache_hit")))
+            if payload.get("confidence") is not None:
+                confidence_total += float(payload["confidence"])
+                confidence_samples += 1
+            context_rows.append(
+                {
+                    "created_at": row["created_at"],
+                    "duration_ms": round(float(row["duration_ms"]), 2),
+                    "tokens_delivered": used,
+                    "baseline_tokens": request_baseline,
+                    "tokens_avoided": avoided,
+                    "result_count": int(row["result_count"]),
+                    "persona": payload.get("persona", "auto"),
+                    "confidence": payload.get("confidence"),
+                    "cache_hit": bool(payload.get("cache_hit")),
+                    "selected_evidence": payload.get("selected_evidence", []),
+                    "architecture": payload.get("architecture", []),
+                    "tokenizer": payload.get("tokenizer"),
+                    "token_count_source": payload.get("token_count_source"),
+                }
+            )
+        avoided_total = max(0, baseline - delivered)
+        request_count = len(context_rows)
+        recent_rows = rows[: max(1, limit)]
+        return {
+            "savings": {
+                "context_requests": request_count,
+                "repository_token_estimate": current_baseline,
+                "baseline_tokens": baseline,
+                "tokens_delivered": delivered,
+                "tokens_avoided": avoided_total,
+                "savings_rate": round(avoided_total / baseline, 4) if baseline else 0.0,
+                "cache_hits": cache_hits,
+                "cache_hit_rate": round(cache_hits / request_count, 4) if request_count else 0.0,
+                "average_confidence": (
+                    round(confidence_total / confidence_samples, 3)
+                    if confidence_samples
+                    else 0.0
+                ),
+                "baseline": "full-index-per-context-request",
+                "measurement": "estimated:utf8-bytes-v1",
+            },
+            "contexts": context_rows[: max(1, limit)],
+            "recent": [
+                {
+                    "created_at": row["created_at"],
+                    "operation": row["operation"],
+                    "duration_ms": round(float(row["duration_ms"]), 2),
+                    "estimated_tokens": int(row["estimated_tokens"]),
+                    "result_count": int(row["result_count"]),
+                    "payload": json.loads(row["payload"] or "{}"),
+                }
+                for row in recent_rows
+            ],
+        }
+
+    def graph_overview(self, limit: int = 48) -> dict[str, Any]:
+        """Return a bounded graph centered on the most connected code nodes."""
+        rows = list(
+            self.db.execute(
+                """SELECT n.*, COUNT(d.node_id) AS degree
+                   FROM nodes n
+                   LEFT JOIN (
+                       SELECT source_id AS node_id FROM edges
+                       UNION ALL
+                       SELECT target_id AS node_id FROM edges
+                   ) d ON d.node_id=n.node_id
+                   WHERE n.kind NOT IN (
+                       'persona', 'relation_policy', 'node_kind_policy', 'tag_policy'
+                   )
+                   GROUP BY n.node_id
+                   ORDER BY degree DESC, n.kind, n.qualified_name
+                   LIMIT ?""",
+                (max(1, limit),),
+            )
+        )
+        return self._bounded_graph(rows, max(1, limit) * 4)
+
+    def graph_for_nodes(self, node_ids: Sequence[str], limit: int = 64) -> dict[str, Any]:
+        """Return a one-hop evidence graph for nodes selected by a context request."""
+        seeds = tuple(dict.fromkeys(node_id for node_id in node_ids if node_id))
+        if not seeds:
+            return {"nodes": [], "edges": []}
+        placeholders = ",".join("?" for _ in seeds)
+        edges = list(
+            self.db.execute(
+                f"""SELECT source_id, relation, target_id, evidence_path, confidence
+                    FROM edges
+                    WHERE source_id IN ({placeholders}) OR target_id IN ({placeholders})
+                    ORDER BY confidence DESC, relation
+                    LIMIT ?""",
+                (*seeds, *seeds, max(1, limit) * 3),
+            )
+        )
+        ids = set(seeds)
+        for edge in edges:
+            ids.add(str(edge["source_id"]))
+            ids.add(str(edge["target_id"]))
+        node_placeholders = ",".join("?" for _ in ids)
+        nodes = list(
+            self.db.execute(
+                f"SELECT *, 0 AS degree FROM nodes WHERE node_id IN ({node_placeholders}) LIMIT ?",
+                (*ids, max(1, limit)),
+            )
+        )
+        return self._bounded_graph(nodes, max(1, limit) * 3, edges)
+
+    def _bounded_graph(
+        self,
+        node_rows: Sequence[sqlite3.Row],
+        edge_limit: int,
+        edge_rows: Sequence[sqlite3.Row] | None = None,
+    ) -> dict[str, Any]:
+        node_ids = {str(row["node_id"]) for row in node_rows}
+        if edge_rows is None and node_ids:
+            placeholders = ",".join("?" for _ in node_ids)
+            edge_rows = list(
+                self.db.execute(
+                    f"""SELECT source_id, relation, target_id, evidence_path, confidence
+                        FROM edges
+                        WHERE source_id IN ({placeholders}) AND target_id IN ({placeholders})
+                        ORDER BY confidence DESC, relation LIMIT ?""",
+                    (*node_ids, *node_ids, edge_limit),
+                )
+            )
+        bounded_edges = [
+            {
+                "source": str(row["source_id"]),
+                "target": str(row["target_id"]),
+                "relation": str(row["relation"]),
+                "evidence_path": str(row["evidence_path"]),
+                "confidence": round(float(row["confidence"]), 3),
+            }
+            for row in (edge_rows or ())
+            if str(row["source_id"]) in node_ids and str(row["target_id"]) in node_ids
+        ][:edge_limit]
+        return {
+            "nodes": [
+                {
+                    "id": str(row["node_id"]),
+                    "kind": str(row["kind"]),
+                    "name": str(row["name"]),
+                    "qualified_name": str(row["qualified_name"]),
+                    "path": row["path"],
+                    "degree": int(row["degree"] or 0),
+                }
+                for row in node_rows
+            ],
+            "edges": bounded_edges,
+        }
 
     def metrics_summary(self, repository: str | None = None, limit: int = 20) -> dict[str, Any]:
         where = " WHERE repository=?" if repository else ""

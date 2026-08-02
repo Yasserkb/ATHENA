@@ -9,6 +9,7 @@ include config.example.yaml
 recursive-include docs *.md
 recursive-include integrations *
 recursive-include src/athena/personas/knowledge *.md
+recursive-include src/athena/observatory/static *.html *.css *.js
 recursive-include examples *.yml *.yaml *.xml *.java *.sql *.py *.ts *.go *.md
 recursive-include scripts *.py
 recursive-include .github *.yml

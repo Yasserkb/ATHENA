@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from importlib.resources import files
+from importlib.resources.abc import Traversable
 from pathlib import Path
 
 _SENIOR_DEVELOPER_FILES = (
@@ -46,7 +47,7 @@ def packaged_knowledge_files(persona_id: str | None = None) -> dict[str, tuple[s
     return {persona_id: grouped[persona_id]} if persona_id in grouped else {}
 
 
-def _source_directory(persona_id: str):
+def _source_directory(persona_id: str) -> Traversable:
     source = files("athena.personas.knowledge")
     return source.joinpath("developer" if persona_id == "senior-developer" else persona_id)
 

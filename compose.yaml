@@ -43,6 +43,64 @@ services:
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=64m
 
+  observatory:
+    profiles: ["observatory"]
+    image: ${ATHENA_IMAGE:-athena-codegraph:local}
+    build:
+      context: .
+      args:
+        VERSION: ${ATHENA_VERSION:-0.1.0}
+        VCS_REF: ${VCS_REF:-local}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+        SOURCE_URL: ${SOURCE_URL:-https://github.com/OWNER/athena-codegraph}
+    command:
+      - observatory
+      - start
+      - --root
+      - /workspace
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8765"
+      - --no-open
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: ${ATHENA_OBSERVATORY_MEMORY_LIMIT:-256m}
+    cpus: ${ATHENA_OBSERVATORY_CPU_LIMIT:-0.5}
+    environment:
+      ATHENA_ROOT: /workspace
+      ATHENA_STATE_DIR: /data
+      ATHENA_OBSERVATORY_STATE: /data/observatory.json
+      PYTHONDONTWRITEBYTECODE: "1"
+    ports:
+      - "127.0.0.1:${ATHENA_OBSERVATORY_PORT:-8765}:8765"
+    volumes:
+      - type: bind
+        source: ${ATHENA_WORKSPACE:-.}
+        target: /workspace
+        read_only: true
+      - type: volume
+        source: athena-data
+        target: /data
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=32m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/api/health', timeout=2)"]
+      interval: 15s
+      timeout: 4s
+      retries: 3
+      start_period: 5s
+    networks:
+      - athena-observatory
+
 volumes:
   athena-data:
     name: ${ATHENA_VOLUME_NAME:-athena-codegraph-data}
+
+networks:
+  athena-observatory:
+    internal: true

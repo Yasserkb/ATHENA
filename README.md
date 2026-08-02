@@ -60,6 +60,7 @@ SQLite schema, MCP projections, continuation tokens, daemon safety, and state la
 - Persona routing and repository-local persona overrides
 - Packaged, selectively indexed specialist knowledge
 - Full and one-tool economy MCP modes
+- Local multi-repository Observatory for health, token efficiency, activity, and graph traces
 - Deterministic host-specific MCP result accounting
 - Generic, OpenAI/tiktoken, Claude, and Copilot token accounting
 - Opaque continuation tokens that invalidate when the index changes
@@ -353,6 +354,78 @@ When targeting another repository with raw `docker run`, mount that repository r
 `/workspace` and provide a dedicated volume at `/data`. Do not reuse one writable Athena volume for
 unrelated repositories.
 
+## Athena Observatory
+
+Athena Observatory is a private, local web control room for every repository registered with
+Athena. It shows:
+
+- index and daemon health, staleness, generation, and repository size;
+- aggregate and per-project context requests;
+- estimated tokens delivered and tokens avoided;
+- cache hits, retrieval confidence, recent scans, and retrieval latency;
+- the high-signal repository graph;
+- the exact evidence subgraph selected for the latest recorded context request.
+
+### Dashboard preview
+
+![Athena Observatory overview showing repository health, context efficiency, and token telemetry](docs/assets/athena-observatory-overview.png)
+
+![Athena Observatory project knowledge graph showing indexed architecture relationships](docs/assets/athena-observatory-project-graph.png)
+
+Start it from the native virtual environment:
+
+```powershell
+Set-Location "D:\code_assists\athena-codegraph"
+.\.venv\Scripts\Activate.ps1
+athena observatory start --root "D:\code_assists\athena-codegraph"
+```
+
+The browser opens at [http://127.0.0.1:8765](http://127.0.0.1:8765). The server binds to the
+loopback interface by default, adds no web-framework dependency, and does not transmit repository
+data. Stop it with `Ctrl+C`.
+
+Register more repositories before or while the dashboard is running:
+
+```powershell
+athena observatory add "D:\code_assists\car-rental"
+athena observatory add "D:\code_assists\another-project"
+athena observatory list
+```
+
+`athena init` also registers its repository automatically. The native registry is stored at
+`~/.athena/observatory.json`. It contains paths and index locations, not source content. Override it
+with `ATHENA_OBSERVATORY_STATE` or `--registry` when isolation is required.
+
+Run the Observatory with Docker:
+
+```powershell
+docker compose --profile observatory up -d --build
+docker compose --profile observatory ps
+```
+
+Then open [http://127.0.0.1:8765](http://127.0.0.1:8765). The Compose service is capped at 256 MB
+and 0.5 CPU by default, uses the existing Athena data volume, publishes only to localhost, and runs
+on an internal Docker network. The Docker dashboard observes the repository mounted through
+`ATHENA_WORKSPACE`; native mode is the simplest choice for aggregating unrelated Windows paths.
+
+### How token savings are calculated
+
+For each completed context request, Athena records:
+
+```text
+estimated tokens avoided = full indexed repository estimate - delivered Athena context
+```
+
+The full-index baseline is calculated from indexed file byte sizes using Athena's provider-neutral
+3.6 UTF-8-bytes-per-token estimator. File sizes are used instead of chunk sizes, so overlapping
+chunks do not inflate the baseline. When an exact provider counter is configured, the delivered
+context uses that measured value.
+
+This number answers: “How much context did Athena avoid sending compared with sending the entire
+indexed repository for this request?” It is a transparent counterfactual efficiency estimate, not
+a provider invoice or guaranteed billing reduction. New requests also record their selected
+evidence and architecture trace without storing the task text.
+
 ## Direct CLI usage
 
 ### Index and inspect
@@ -486,6 +559,7 @@ src/athena/
   indexing/          discovery, parsers, chunking, semantic plugins, derivation
   integrations/      generated assistant/IDE adapters
   mcp/               FastMCP STDIO server
+  observatory/       local server, project registry, telemetry, and dashboard assets
   orchestrator/      runtime composition
   personas/          definitions, routing, policy graph, packaged knowledge
   retrieval/         hybrid ranking, packing, and hard-budget enforcement
