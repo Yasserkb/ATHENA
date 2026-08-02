@@ -1,0 +1,99 @@
+schema_version: 1
+index:
+  # ATHENA_STATE_DIR overrides this with STATE_DIR/index.db for container deployments.
+  database: .athena/index.db
+  max_file_bytes: 1000000
+  chunk_lines: 80
+  chunk_overlap_lines: 12
+  parse_workers: 0
+  write_batch_size: 100
+  include_extensions:
+    - .java
+    - .kt
+    - .kts
+    - .py
+    - .ts
+    - .tsx
+    - .js
+    - .jsx
+    - .mjs
+    - .cjs
+    - .cs
+    - .go
+    - .rs
+    - .php
+    - .rb
+    - .c
+    - .h
+    - .cc
+    - .cpp
+    - .cxx
+    - .hpp
+    - .swift
+    - .dart
+    - .yaml
+    - .yml
+    - .properties
+    - .sql
+    - .md
+  exclude_globs:
+    - "**/target/**"
+    - "**/build/**"
+    - "**/node_modules/**"
+    - "**/.git/**"
+  secret_scan: true
+retrieval:
+  top_k_lexical: 20
+  top_k_exact: 12
+  graph_depth: 2
+  graph_max_nodes: 40
+  min_score: 0.05
+  cache_max_entries: 256
+  bundle_cache_entries: 64
+  token_cache_entries: 4096
+tokenization:
+  provider: generic
+  target_model: null
+  openai_encoding: o200k_base
+  claude_remote_counting: false
+  anthropic_api_key_env: ANTHROPIC_API_KEY
+  copilot_model_provider: auto
+  # Set this from GitHub's current Copilot model-pricing table.
+  copilot_input_usd_per_million: null
+  copilot_monthly_ai_credits: 6000
+security:
+  restrict_to_workspace: true
+  allow_command_execution: false
+  redact_secrets: true
+personas:
+  extra_dirs:
+    - .athena/personas
+telemetry:
+  enabled: true
+  store_task_text: false
+
+daemon:
+  poll_interval_ms: 250
+  debounce_ms: 500
+  max_batch_delay_ms: 2000
+  heartbeat_timeout_seconds: 10
+
+semantic:
+  enabled: true
+  load_entry_points: true
+  enabled_plugins: []
+  disabled_plugins: []
+
+mcp:
+  # Counts the deterministic MCP CallToolResult body, not private host/model prompt framing.
+  host: generic-mcp
+  # full: diagnostics/debug surface; economy: one compact repository_context tool.
+  mode: full
+  economy:
+    profile: economy
+    tokenizer_provider: openai
+    target_model: null
+    # compact-text-v1 contains source evidence once. Use structured-compat-v1 for older hosts.
+    response_representation: compact-text-v1
+    max_context_tokens: 1400
+    continuation_ttl_minutes: 45
