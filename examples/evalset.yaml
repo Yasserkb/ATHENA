@@ -1,0 +1,26 @@
+cases:
+  - id: payment-client-retry
+    query: Add retry logic to PaymentClient authorize and update its tests
+    expected_persona: developer
+    expected_files:
+      - PaymentClient.java
+      - PaymentService.java
+      - PaymentServiceTest.java
+      - application.yml
+    forbidden_files:
+      - V1__create_payment.sql
+
+  - id: payment-architecture
+    query: Explain the payment request architecture and workflow
+    expected_persona: architect
+    expected_files:
+      - PaymentController.java
+      - PaymentService.java
+      - PaymentRepository.java
+      - PaymentClient.java
+      - Payment.java
+      - PaymentRequest.java
+      - PaymentResponse.java
+      - PaymentServiceTest.java
+      - application.yml
+      - V1__create_payment.sql

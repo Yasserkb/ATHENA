@@ -1,0 +1,3 @@
+order:
+  timeout-ms: ${ORDER_TIMEOUT_MS:1500}
+  retry-count: 3

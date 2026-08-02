@@ -1,0 +1,95 @@
+schema_version: 1
+name: athena-representative-multilanguage
+
+benchmark:
+  warmup: 1
+  iterations: 5
+
+thresholds:
+  routing_accuracy_min: 1.0
+  file_precision_min: 0.4
+  file_recall_min: 0.9
+  symbol_recall_min: 0.9
+  context_type_recall_min: 0.8
+  mrr_min: 0.8
+  forbidden_hits_max: 0
+  max_estimated_tokens: 6000
+  exact_p95_ms_max: 25
+  fts_p95_ms_max: 50
+  graph_p95_ms_max: 100
+  context_cold_p95_ms_max: 500
+  context_warm_p95_ms_max: 250
+  no_change_scan_p95_ms_max: 2000
+
+cases:
+  - id: java-order-validation
+    query: Add validation to OrderService create and update OrderServiceTest
+    expected_persona: developer
+    expected_files:
+      - java/OrderService.java
+      - java/OrderServiceTest.java
+    expected_symbols:
+      - OrderService
+    expected_context_types:
+      - source
+      - test
+    forbidden_files:
+      - legacy/UnrelatedLegacy.java
+
+  - id: java-order-architecture
+    query: Explain the architecture workflow from OrderController through OrderService to OrderRepository
+    expected_persona: architect
+    expected_files:
+      - java/OrderController.java
+      - java/OrderService.java
+      - java/OrderRepository.java
+    expected_symbols:
+      - OrderController
+      - OrderService
+      - OrderRepository
+    expected_context_types:
+      - source
+    forbidden_files:
+      - legacy/UnrelatedLegacy.java
+
+  - id: python-user-debug
+    query: Debug the FastAPI UserService get_user endpoint and test_get_user
+    expected_persona: debugger
+    expected_files:
+      - python/user_api.py
+      - python/test_user_api.py
+    expected_symbols:
+      - UserService
+    expected_context_types:
+      - source
+      - test
+    forbidden_files:
+      - legacy/UnrelatedLegacy.java
+
+  - id: typescript-checkout-review
+    query: Review CheckoutService submit and checkout.test.ts
+    expected_persona: reviewer
+    expected_files:
+      - typescript/checkout.ts
+      - typescript/checkout.test.ts
+    expected_symbols:
+      - CheckoutService
+    expected_context_types:
+      - source
+      - test
+    forbidden_files:
+      - legacy/UnrelatedLegacy.java
+
+  - id: order-documentation
+    query: Document the order timeout configuration and create_orders database migration from README
+    expected_persona: doc-writer
+    expected_files:
+      - config/application.yml
+      - db/V1__create_orders.sql
+      - README.md
+    expected_context_types:
+      - configuration
+      - database
+      - documentation
+    forbidden_files:
+      - legacy/UnrelatedLegacy.java
