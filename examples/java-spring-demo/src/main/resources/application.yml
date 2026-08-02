@@ -1,0 +1,4 @@
+payment:
+  client:
+    base-url: ${PAYMENT_CLIENT_BASE_URL:http://localhost:9090}
+    timeout-ms: 2000
