@@ -6,10 +6,15 @@ from typing import Any, Literal
 from athena.domain import ContextBundle
 from athena.mcp_envelope import MCPHost, serialize_host_envelope, serialize_text_host_envelope
 
-ProjectionId = Literal["full-v1", "athena-context-economy-v1"]
+ProjectionId = Literal[
+    "full-v1",
+    "athena-context-economy-v1",
+    "athena-clarification-v1",
+]
 ResponseRepresentation = Literal["structured-compat-v1", "compact-text-v1"]
 
 ECONOMY_PROJECTION: ProjectionId = "athena-context-economy-v1"
+CLARIFICATION_PROJECTION: ProjectionId = "athena-clarification-v1"
 FULL_PROJECTION: ProjectionId = "full-v1"
 
 
@@ -48,7 +53,44 @@ def economy_payload(bundle: ContextBundle) -> dict[str, Any]:
     return payload
 
 
+def clarification_payload(bundle: ContextBundle) -> dict[str, Any]:
+    """Return target metadata only so ambiguity checks never load source bodies."""
+    assessment = bundle.query_assessment
+    if assessment is None:
+        raise ValueError("clarification projection requires a query assessment")
+    payload: dict[str, Any] = {
+        "v": 1,
+        "kind": "clarification",
+        "ambiguous": assessment.ambiguous,
+        "recommendation": assessment.recommendation,
+        "confidence": assessment.confidence,
+        "reasons": list(assessment.reasons),
+        "candidates": [
+            {
+                "path": hit.chunk.path,
+                "lines": [hit.chunk.start_line, hit.chunk.end_line],
+                "symbol": hit.chunk.symbol_id,
+                "score": round(hit.score, 4),
+                "why": list(hit.reasons),
+            }
+            for hit in bundle.hits
+        ],
+        "usage": {
+            "tokens": bundle.provider_tokens or bundle.estimated_tokens,
+            "budget": bundle.hard_budget,
+            "remaining": bundle.remaining_budget,
+            "dropped": bundle.dropped_evidence,
+            "scope": bundle.accounting_scope,
+        },
+    }
+    if bundle.warnings:
+        payload["warnings"] = list(bundle.warnings)
+    return payload
+
+
 def projection_payload(bundle: ContextBundle) -> dict[str, Any]:
+    if bundle.projection_id == CLARIFICATION_PROJECTION:
+        return clarification_payload(bundle)
     if bundle.projection_id == ECONOMY_PROJECTION:
         return economy_payload(bundle)
     return bundle.to_dict()

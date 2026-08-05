@@ -124,6 +124,16 @@ class RetrievalHit:
 
 
 @dataclass(frozen=True, slots=True)
+class QueryAssessment:
+    """Deterministic assessment used to resolve an underspecified repository request."""
+
+    ambiguous: bool
+    recommendation: Literal["use_context", "ask_user"]
+    confidence: float
+    reasons: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class PersonaRetrievalPolicy:
     start_kinds: tuple[str, ...] = ()
     traverse_relations: tuple[str, ...] = ()
@@ -194,9 +204,10 @@ class ContextBundle:
     response_representation: str = "structured-compat-v1"
     continuation_token: str | None = None
     incremental_files_scanned: int = 0
+    query_assessment: QueryAssessment | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        result: dict[str, Any] = {
             "repository": self.repository,
             "task": self.task,
             "persona": self.persona.persona_id,
@@ -242,6 +253,14 @@ class ContextBundle:
                 for hit in self.hits
             ],
         }
+        if self.query_assessment is not None:
+            result["query_assessment"] = {
+                "ambiguous": self.query_assessment.ambiguous,
+                "recommendation": self.query_assessment.recommendation,
+                "confidence": self.query_assessment.confidence,
+                "reasons": list(self.query_assessment.reasons),
+            }
+        return result
 
     def to_json(self, *, pretty: bool = False) -> str:
         """Serialize the exact Athena-controlled MCP/JSON result representation."""

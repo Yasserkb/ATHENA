@@ -1,4 +1,4 @@
 from .profiles import apply_profile, resolve_profile
-from .service import RetrievalService
+from .service import RetrievalRequestKind, RetrievalService
 
-__all__ = ["RetrievalService", "apply_profile", "resolve_profile"]
+__all__ = ["RetrievalRequestKind", "RetrievalService", "apply_profile", "resolve_profile"]

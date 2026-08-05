@@ -9,17 +9,20 @@ Use Athena as the repository context layer. Do not load the complete Athena fram
 conversation.
 
 For repository work:
-1. In economy mode, call `repository_context` once before broad exploration.
-2. Reuse its paths, line ranges, relationships, and evidence.
-3. Use its continuation token only when the first result is insufficient.
-4. Verify exact source before editing when confidence is low.
-5. Skip Athena for general questions and trivial edits in an already-provided file.
+1. If the target is vague, call `repository_context` once with `request_kind="clarify"`.
+2. Ask one focused question when it recommends `ask_user`; otherwise make one focused context call.
+3. For a specific task, call `repository_context` with `request_kind="context"` before exploration.
+4. Reuse its evidence and use continuation only when the first context result is insufficient.
+5. Verify exact source before editing when confidence is low.
+6. Skip Athena for general questions and trivial edits in an already-provided file.
 """
 
 _COPILOT = """# Athena dynamic repository context
 
 For repository questions that require understanding or changing code, call `athena_context` exactly
-once before opening files. Use its ranked evidence as the starting context. Do not repeat searches
+once before opening files. If the target is vague, first call it with `request_kind="clarify"` and
+ask one question when it recommends `ask_user`; otherwise make a focused context call. Use ranked
+evidence as the starting context. Do not repeat searches
 or reopen the same files unless Athena reports low confidence or missing evidence. Keep responses
 concise and stop after the requested change and verification. Do not call Athena for general
 questions that do not require repository context.

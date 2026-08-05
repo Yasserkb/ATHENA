@@ -14,7 +14,7 @@ from athena.indexing.semantic import SemanticPluginRegistry
 from athena.mcp_envelope import MCPHost
 from athena.personas import PersonaRegistry, PersonaRouter
 from athena.personas.graph import write_persona_graph
-from athena.retrieval import RetrievalService, apply_profile, resolve_profile
+from athena.retrieval import RetrievalRequestKind, RetrievalService, apply_profile, resolve_profile
 from athena.security import WorkspaceGuard
 from athena.storage import SQLiteStore
 from athena.tokenization import TokenizerProvider
@@ -75,6 +75,10 @@ class AthenaRuntime:
         excluded_chunk_ids: frozenset[str] = frozenset(),
         max_context_tokens: int | None = None,
         incremental_files_scanned: int = 0,
+        request_kind: RetrievalRequestKind = "context",
+        clarification_max_candidates: int = 3,
+        clarification_confidence_threshold: float = 0.72,
+        clarification_margin_threshold: float = 0.12,
     ) -> ContextBundle:
         all_personas = self.personas.all()
         if persona_id:
@@ -109,6 +113,10 @@ class AthenaRuntime:
             continuation_token,
             excluded_chunk_ids,
             incremental_files_scanned,
+            request_kind,
+            clarification_max_candidates,
+            clarification_confidence_threshold,
+            clarification_margin_threshold,
         )
 
     def graph(self, name: str, limit: int = 50) -> list[dict[str, object]]:

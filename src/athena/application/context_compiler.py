@@ -7,12 +7,18 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from athena.context_projection import ECONOMY_PROJECTION, economy_payload, mcp_text_result
+from athena.context_projection import (
+    CLARIFICATION_PROJECTION,
+    ECONOMY_PROJECTION,
+    mcp_text_result,
+    projection_payload,
+)
 from athena.daemon import daemon_is_fresh
 from athena.domain import ContextBundle
 from athena.errors import AthenaError
 from athena.mcp_envelope import MCPHost
 from athena.orchestrator import AthenaRuntime
+from athena.retrieval import RetrievalRequestKind
 
 
 @dataclass(frozen=True, slots=True)
@@ -126,12 +132,15 @@ class ContextCompiler:
         query: str,
         persona: str | None = None,
         continuation_token: str | None = None,
+        request_kind: RetrievalRequestKind = "context",
     ) -> CompiledContext:
         normalized_query = query.strip()
         if not normalized_query:
             raise AthenaError("query must not be empty")
         if len(normalized_query) > 12_000:
             raise AthenaError("query exceeds the 12,000-character safety limit")
+        if request_kind == "clarify" and continuation_token is not None:
+            raise AthenaError("Clarification requests do not accept continuation tokens.")
 
         generation = self.runtime.store.index_generation()
         previous: _ContinuationState | None = None
@@ -159,11 +168,13 @@ class ContextCompiler:
             excluded = previous.returned_chunk_ids
             effective_query = f"{previous.initial_query}\nContinuation focus: {normalized_query}"
 
-        output_token = continuation_token or self.continuations.token_for(
-            normalized_query,
-            persona,
-            generation,
+        output_token = (
+            None
+            if request_kind == "clarify"
+            else continuation_token
+            or self.continuations.token_for(normalized_query, persona, generation)
         )
+        clarification = request_kind == "clarify"
         bundle = self.runtime.context(
             effective_query,
             effective_persona,
@@ -171,14 +182,27 @@ class ContextCompiler:
             tokenizer_provider=self.settings.tokenizer_provider,
             target_model=self.settings.target_model,
             mcp_host=self.host,
-            projection_id=ECONOMY_PROJECTION,
+            projection_id=(CLARIFICATION_PROJECTION if clarification else ECONOMY_PROJECTION),
             response_representation=self.settings.response_representation,
             continuation_token=output_token,
             excluded_chunk_ids=excluded,
-            max_context_tokens=self.settings.max_context_tokens,
+            max_context_tokens=(
+                self.settings.clarification_max_tokens
+                if clarification
+                else self.settings.max_context_tokens
+            ),
             incremental_files_scanned=scanned,
+            request_kind=request_kind,
+            clarification_max_candidates=self.settings.clarification_max_candidates,
+            clarification_confidence_threshold=(
+                self.settings.clarification_confidence_threshold
+            ),
+            clarification_margin_threshold=self.settings.clarification_margin_threshold,
         )
         returned = frozenset(hit.chunk.chunk_id for hit in bundle.hits)
+        if clarification:
+            return CompiledContext(bundle, projection_payload(bundle))
+        assert output_token is not None
         if previous is None:
             self.continuations.issue(
                 normalized_query,
@@ -189,4 +213,4 @@ class ContextCompiler:
             )
         else:
             self.continuations.replace(output_token, previous, returned, generation)
-        return CompiledContext(bundle, economy_payload(bundle))
+        return CompiledContext(bundle, projection_payload(bundle))

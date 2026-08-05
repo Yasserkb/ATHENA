@@ -272,6 +272,13 @@ def repository_context_command(
     continuation_token: Annotated[
         str | None, typer.Option("--continuation-token", help="Expand without repeated evidence")
     ] = None,
+    request_kind: Annotated[
+        Literal["context", "clarify"],
+        typer.Option(
+            "--request-kind",
+            help="context for source evidence; clarify for metadata-only target candidates",
+        ),
+    ] = "context",
     json_output: Annotated[bool, typer.Option("--json/--text")] = True,
 ) -> None:
     """Use the same neutral economy compiler exposed through MCP."""
@@ -282,8 +289,9 @@ def repository_context_command(
                 query,
                 persona,
                 continuation_token,
+                request_kind,
             )
-        if json_output:
+        if json_output or request_kind == "clarify":
             typer.echo(json.dumps(compiled.payload, ensure_ascii=False, separators=(",", ":")))
         else:
             typer.echo(compiled.bundle.to_prompt())

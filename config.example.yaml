@@ -96,4 +96,9 @@ mcp:
     # compact-text-v1 contains source evidence once. Use structured-compat-v1 for older hosts.
     response_representation: compact-text-v1
     max_context_tokens: 1400
+    # Ambiguous requests can use a metadata-only pass before loading source evidence.
+    clarification_max_tokens: 400
+    clarification_max_candidates: 3
+    clarification_confidence_threshold: 0.72
+    clarification_margin_threshold: 0.12
     continuation_ttl_minutes: 45

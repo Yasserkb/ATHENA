@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import math
+import re
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field, replace
+from typing import Literal
 
 from athena.cache import BoundedCache
 from athena.config import AppConfig
@@ -14,7 +16,7 @@ from athena.context_projection import (
     projection_json,
     serialize_projected_result,
 )
-from athena.domain import Chunk, ContextBundle, Persona, RetrievalHit
+from athena.domain import Chunk, ContextBundle, GraphNode, Persona, QueryAssessment, RetrievalHit
 from athena.errors import TokenBudgetError
 from athena.indexing.common import exact_search_terms
 from athena.mcp_envelope import MCPHost, host_envelope_profile
@@ -26,6 +28,52 @@ from athena.tokenization import (
     create_token_counter,
     estimate_tokens,
 )
+
+RetrievalRequestKind = Literal["context", "clarify"]
+
+_VAGUE_TERMS = {
+    "again",
+    "code",
+    "earlier",
+    "feature",
+    "issue",
+    "problem",
+    "something",
+    "stuff",
+    "that",
+    "thing",
+    "this",
+}
+
+_GENERIC_TARGET_TERMS = _VAGUE_TERMS | {
+    "add",
+    "application",
+    "bug",
+    "change",
+    "class",
+    "config",
+    "context",
+    "create",
+    "data",
+    "error",
+    "file",
+    "fix",
+    "function",
+    "handler",
+    "implement",
+    "implementation",
+    "improve",
+    "logic",
+    "make",
+    "manager",
+    "modify",
+    "module",
+    "project",
+    "refactor",
+    "service",
+    "system",
+    "update",
+}
 
 
 @dataclass(slots=True)
@@ -76,6 +124,10 @@ class RetrievalService:
         continuation_token: str | None = None,
         excluded_chunk_ids: frozenset[str] = frozenset(),
         incremental_files_scanned: int = 0,
+        request_kind: RetrievalRequestKind = "context",
+        clarification_max_candidates: int = 3,
+        clarification_confidence_threshold: float = 0.72,
+        clarification_margin_threshold: float = 0.12,
     ) -> ContextBundle:
         started = time.perf_counter()
         provider = tokenizer_provider or self.config.tokenization.provider
@@ -117,12 +169,16 @@ class RetrievalService:
             continuation_token,
             tuple(sorted(excluded_chunk_ids)),
             incremental_files_scanned,
+            request_kind,
+            clarification_max_candidates,
+            clarification_confidence_threshold,
+            clarification_margin_threshold,
         )
         cached = self._bundle_cache.get(cache_key)
         if cached is not None:
             duration_ms = (time.perf_counter() - started) * 1000
             self.store.record_metric(
-                "context",
+                request_kind_to_metric(request_kind),
                 repository,
                 duration_ms,
                 cached.provider_tokens or cached.estimated_tokens,
@@ -131,6 +187,8 @@ class RetrievalService:
                     "persona": persona.persona_id,
                     "confidence": cached.retrieval_confidence,
                     "cache_hit": True,
+                    "request_kind": request_kind,
+                    **_assessment_payload(cached.query_assessment),
                     "index_generation": generation,
                     "tokenizer": cached.tokenizer,
                     "target_model": cached.target_model,
@@ -147,11 +205,19 @@ class RetrievalService:
                 },
             )
             return cached
-        terms = exact_search_terms(task)
+        terms = (
+            _clarification_exact_terms(task)
+            if request_kind == "clarify"
+            else exact_search_terms(task)
+        )
         exact_candidates = [
             (node, score)
             for node, score in self.store.exact_nodes(terms, self.config.retrieval.top_k_exact * 2)
             if node.path != "@persona"
+            and (
+                request_kind != "clarify"
+                or (score >= 0.8 and node.path is not None and not node.path.startswith("@"))
+            )
         ]
         # Personas constrain the graph's starting point. If the requested kinds do not
         # match, retain the unfiltered list as a graceful fallback rather than returning
@@ -162,26 +228,38 @@ class RetrievalService:
         seed_ids = [node.node_id for node, _ in exact]
         candidates: dict[str, _Candidate] = {}
 
-        # Exact node/path/config matches are the strongest source-code signal.
-        exact_chunks = self.store.chunks_for_nodes(seed_ids, limit=100)
         exact_scores = {node.node_id: score for node, score in exact}
-        for chunk in exact_chunks:
-            base = exact_scores.get(chunk.symbol_id or "", 0.72)
-            self._add(candidates, chunk, min(0.97, base), "exact-symbol")
+        exact_target_chunks: dict[str, Chunk] = {}
+        if request_kind == "clarify":
+            for node, score in exact:
+                chunk = _clarification_chunk(node)
+                exact_target_chunks[node.node_id] = chunk
+                self._add(candidates, chunk, min(0.97, score), "exact-symbol")
+        else:
+            # Normal context expands an exact node to source-bearing chunks in the same file.
+            exact_chunks = self.store.chunks_for_nodes(seed_ids, limit=100)
+            for chunk in exact_chunks:
+                base = exact_scores.get(chunk.symbol_id or "", 0.72)
+                self._add(candidates, chunk, min(0.97, base), "exact-symbol")
 
         # Unicode FTS5/BM25 handles identifiers and natural-language terms without a model.
         lexical = self.store.lexical_chunks(task, self.config.retrieval.top_k_lexical)
         for rank, (chunk, bm25_score) in enumerate(lexical, 1):
             reciprocal = 1.0 / math.sqrt(rank)
             score = min(0.88, 0.35 + 0.35 * reciprocal + 0.25 * bm25_score)
-            self._add(candidates, chunk, score, f"fts-rank-{rank}")
+            target = exact_target_chunks.get(chunk.symbol_id or "", chunk)
+            self._add(candidates, target, score, f"fts-rank-{rank}")
 
         graph_depth = min(persona.policy.graph_depth, self.config.retrieval.graph_depth)
-        graph = self.store.graph_walk(
-            seed_ids,
-            persona.policy.traverse_relations,
-            graph_depth,
-            self.config.retrieval.graph_max_nodes,
+        graph = (
+            []
+            if request_kind == "clarify"
+            else self.store.graph_walk(
+                seed_ids,
+                persona.policy.traverse_relations,
+                graph_depth,
+                self.config.retrieval.graph_max_nodes,
+            )
         )
         graph_ids = [node.node_id for node, _, _ in graph]
         graph_distance = {node.node_id: distance for node, distance, _ in graph}
@@ -218,8 +296,11 @@ class RetrievalService:
             for x in ranked
             if x.score >= dynamic_threshold and x.chunk.chunk_id not in excluded_chunk_ids
         ]
-        selected = self._pack(ranked, persona)
-        selected = self._apply_evidence_levels(selected)
+        if request_kind == "clarify":
+            selected = self._pack_clarification(ranked, clarification_max_candidates)
+        else:
+            selected = self._pack(ranked, persona)
+            selected = self._apply_evidence_levels(selected)
         hits = tuple(
             RetrievalHit(
                 candidate.chunk,
@@ -230,7 +311,11 @@ class RetrievalService:
             for candidate in selected
         )
         architecture_ids = list(dict.fromkeys([*seed_ids, *graph_ids]))
-        architecture = tuple(self.store.architecture_lines(architecture_ids, limit=24))
+        architecture = (
+            ()
+            if request_kind == "clarify"
+            else tuple(self.store.architecture_lines(architecture_ids, limit=24))
+        )
         warnings: list[str] = []
         if not exact:
             warnings.append(
@@ -246,6 +331,19 @@ class RetrievalService:
             warnings.append("The task mentions tests, but no related test evidence was retrieved.")
         top_score = hits[0].score if hits else 0.0
         confidence = round(min(1.0, 0.25 * route_confidence + 0.75 * top_score), 3)
+        assessment = (
+            _assess_query(
+                task,
+                hits,
+                bool(exact),
+                clarification_confidence_threshold,
+                clarification_margin_threshold,
+            )
+            if request_kind == "clarify"
+            else None
+        )
+        if assessment is not None:
+            confidence = assessment.confidence
         bundle = self._enforce_payload_budget(
             repository,
             task,
@@ -271,10 +369,11 @@ class RetrievalService:
             response_representation,
             continuation_token,
             incremental_files_scanned,
+            assessment,
         )
         duration_ms = (time.perf_counter() - started) * 1000
         self.store.record_metric(
-            "context",
+            request_kind_to_metric(request_kind),
             repository,
             duration_ms,
             bundle.provider_tokens or bundle.estimated_tokens,
@@ -286,6 +385,8 @@ class RetrievalService:
                 "graph_nodes": len(graph),
                 "confidence": confidence,
                 "cache_hit": False,
+                "request_kind": request_kind,
+                **_assessment_payload(assessment),
                 "index_generation": generation,
                 "tokenizer": bundle.tokenizer,
                 "target_model": bundle.target_model,
@@ -379,6 +480,22 @@ class RetrievalService:
         return selected
 
     @staticmethod
+    def _pack_clarification(
+        ranked: list[_Candidate], max_candidates: int
+    ) -> list[_Candidate]:
+        """Select distinct target metadata without paying to serialize source bodies."""
+        selected: list[_Candidate] = []
+        seen_paths: set[str] = set()
+        for candidate in ranked:
+            if candidate.chunk.path in seen_paths:
+                continue
+            seen_paths.add(candidate.chunk.path)
+            selected.append(candidate)
+            if len(selected) >= max_candidates:
+                break
+        return selected
+
+    @staticmethod
     def _apply_evidence_levels(selected: list[_Candidate]) -> list[_Candidate]:
         """Keep the primary target intact and compact secondary source evidence.
 
@@ -420,6 +537,7 @@ class RetrievalService:
         response_representation: ResponseRepresentation,
         continuation_token: str | None,
         incremental_files_scanned: int,
+        query_assessment: QueryAssessment | None,
     ) -> ContextBundle:
         kept = list(hits)
         kept_architecture = list(architecture)
@@ -457,6 +575,7 @@ class RetrievalService:
                 response_representation=response_representation,
                 continuation_token=continuation_token,
                 incremental_files_scanned=incremental_files_scanned,
+                query_assessment=query_assessment,
             )
             bundle = self._account_payload(
                 base,
@@ -587,6 +706,142 @@ class RetrievalService:
         return self._provider_token_cache.get_or_compute(
             (f"{counter.tokenizer}:{counter.target_model}", text), lambda: counter.count(text)
         )
+
+
+def request_kind_to_metric(request_kind: RetrievalRequestKind) -> str:
+    return "clarification" if request_kind == "clarify" else "context"
+
+
+def _assessment_payload(assessment: QueryAssessment | None) -> dict[str, object]:
+    if assessment is None:
+        return {}
+    return {
+        "ambiguous": assessment.ambiguous,
+        "recommendation": assessment.recommendation,
+        "assessment_confidence": assessment.confidence,
+        "assessment_reasons": list(assessment.reasons),
+    }
+
+
+def _clarification_exact_terms(task: str) -> list[str]:
+    """Keep exact seeding for identifier-like terms, not broad repository nouns."""
+    terms: list[str] = []
+    for term in exact_search_terms(task):
+        normalized = term.casefold()
+        if normalized in _GENERIC_TARGET_TERMS:
+            continue
+        identifier_like = (
+            any(marker in term for marker in ("/", "\\", ".", "_", "#", "$", "-"))
+            or any(character.isdigit() for character in term)
+            or (term.isupper() and 2 <= len(term) <= 16)
+            or (not term.islower() and not term.istitle())
+        )
+        if identifier_like:
+            terms.append(term)
+    return terms
+
+
+def _clarification_chunk(node: GraphNode) -> Chunk:
+    """Represent an exact graph target without attaching neighboring source content."""
+    assert node.path is not None
+    return Chunk(
+        f"clarification::{node.node_id}",
+        node.path,
+        max(1, node.start_line),
+        max(1, node.end_line, node.start_line),
+        "",
+        "",
+        node.node_id,
+    )
+
+
+def _assess_query(
+    task: str,
+    hits: tuple[RetrievalHit, ...],
+    has_exact_match: bool,
+    confidence_threshold: float,
+    margin_threshold: float,
+) -> QueryAssessment:
+    """Estimate whether repository evidence identifies one safe target.
+
+    This is intentionally conservative. It does not claim to understand user intent; it only
+    reports whether deterministic repository signals converge on one target.
+    """
+    if not hits:
+        return QueryAssessment(
+            True,
+            "ask_user",
+            0.0,
+            ("No indexed repository target matched the request.",),
+        )
+
+    words = {word.casefold() for word in re.findall(r"[\w-]+", task, flags=re.UNICODE)}
+    vague = sorted(words.intersection(_VAGUE_TERMS))
+    top = hits[0].score
+    second = hits[1].score if len(hits) > 1 else 0.0
+    margin = top - second
+    competing = len(hits) > 1 and margin < margin_threshold
+    exact_targets = [hit for hit in hits if "exact-symbol" in hit.reasons]
+    conflicting_exact_targets = len(exact_targets) > 1 and competing
+    low_confidence = top < confidence_threshold
+    specific_signals = [
+        term
+        for term in exact_search_terms(task)
+        if term.casefold() not in _GENERIC_TARGET_TERMS
+    ]
+    few_signals = len(specific_signals) < 2
+
+    reasons: list[str] = []
+    if has_exact_match:
+        reasons.append("An exact repository symbol, path, or configuration target matched.")
+    else:
+        reasons.append("No exact repository target matched; candidates came from lexical search.")
+    if vague:
+        reasons.append("The request contains vague references: " + ", ".join(vague) + ".")
+    if few_signals:
+        reasons.append("The request contains fewer than two specific repository signals.")
+    if competing:
+        if has_exact_match and not conflicting_exact_targets:
+            reasons.append(
+                "Candidate scores are close, but only the leading target has an exact match "
+                f"(score margin {margin:.3f})."
+            )
+        else:
+            reasons.append(
+                "The leading candidates are too close to distinguish safely "
+                f"(score margin {margin:.3f})."
+            )
+    if conflicting_exact_targets:
+        reasons.append("Multiple distinct targets matched exact identifiers in the request.")
+    if low_confidence:
+        reasons.append(
+            f"The strongest candidate score {top:.3f} is below the "
+            f"{confidence_threshold:.3f} threshold."
+        )
+
+    ambiguous = (
+        (not has_exact_match and (low_confidence or competing or few_signals))
+        or conflicting_exact_targets
+        or (bool(vague) and (competing or few_signals))
+    )
+    adjusted = top
+    if not has_exact_match:
+        adjusted *= 0.88
+    if competing:
+        adjusted *= 0.75
+    if vague:
+        adjusted *= 0.85
+    if few_signals:
+        adjusted *= 0.9
+    confidence = round(max(0.0, min(1.0, adjusted)), 3)
+    if not ambiguous:
+        reasons.append("Repository signals converge on one target strongly enough to continue.")
+    return QueryAssessment(
+        ambiguous,
+        "ask_user" if ambiguous else "use_context",
+        confidence,
+        tuple(reasons),
+    )
 
 
 def _compact_source_chunk(chunk: Chunk, max_lines: int) -> Chunk:

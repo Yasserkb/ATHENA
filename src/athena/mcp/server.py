@@ -8,6 +8,7 @@ from athena.application import ContextCompiler
 from athena.daemon import ensure_daemon_running, load_daemon_diagnostics
 from athena.mcp_envelope import MCPHost
 from athena.orchestrator import AthenaRuntime
+from athena.retrieval import RetrievalRequestKind
 from athena.tokenization import TokenizerProvider
 
 
@@ -28,13 +29,18 @@ def create_server(
     effective_mode = "economy" if copilot_mode else (mode or runtime.config.mcp.mode)
     atexit.register(runtime.close)
     instructions = (
-        "For repository work, call repository_context once before broad exploration. Reuse its "
-        "evidence. Use its continuation only when evidence is insufficient. Skip it for general "
-        "questions; verify exact source before edits when confidence is low."
+        "For a vague repository task, call repository_context once with request_kind='clarify'; "
+        "use its candidate targets to focus the query, or ask the user when recommendation is "
+        "ask_user. Clarification returns metadata only and never accepts continuation. For a "
+        "specific task, call repository_context once with request_kind='context' before broad "
+        "exploration. Reuse its evidence and use continuation only when it is insufficient. Skip "
+        "Athena for general questions; verify exact source before edits when confidence is low."
         if effective_mode == "economy" and not copilot_mode
         else (
-            "For repository work, call athena_context once before broad exploration. Reuse its "
-            "evidence and skip it for general questions."
+            "For a vague repository task, call athena_context with request_kind='clarify' and ask "
+            "one question when it recommends ask_user; otherwise make a focused context call. "
+            "For a specific repository task, call athena_context with request_kind='context' once "
+            "before broad exploration. Reuse its evidence and skip it for general questions."
             if copilot_mode
             else (
                 "Local, evidence-backed code graph. Build context before repository changes. "
@@ -60,25 +66,35 @@ def create_server(
         if copilot_mode:
 
             @mcp.tool(name="athena_context", annotations=annotations, structured_output=False)
-            def copilot_context(task: str, persona: str | None = None) -> Any:
+            async def copilot_context(
+                task: str,
+                persona: str | None = None,
+                request_kind: RetrievalRequestKind = "context",
+            ) -> Any:
                 """Return bounded repository evidence for this coding task."""
-                return compiler.compile(task, persona).mcp_result()
+                return compiler.compile(task, persona, request_kind=request_kind).mcp_result()
 
             return mcp
 
         @mcp.tool(name="repository_context", annotations=annotations, structured_output=False)
-        def repository_context(
+        async def repository_context(
             query: str,
             persona: str | None = None,
             continuation_token: str | None = None,
+            request_kind: RetrievalRequestKind = "context",
         ) -> Any:
-            """Return compact repository evidence; call once before broad exploration."""
-            return compiler.compile(query, persona, continuation_token).mcp_result()
+            """Return compact evidence, or metadata-only targets when the query is vague."""
+            return compiler.compile(
+                query,
+                persona,
+                continuation_token,
+                request_kind,
+            ).mcp_result()
 
         return mcp
 
     @mcp.tool(name="athena_scan_repository")
-    def scan_repository() -> dict[str, Any]:
+    async def scan_repository() -> dict[str, Any]:
         """Incrementally analyze the allowed workspace and refresh its local graph index."""
         report = runtime.scan()
         return {
@@ -94,7 +110,7 @@ def create_server(
         }
 
     @mcp.tool(name="athena_build_context")
-    def build_context(
+    async def build_context(
         task: str,
         persona: str | None = None,
         profile: str | None = None,
@@ -114,17 +130,17 @@ def create_server(
         ).to_dict()
 
     @mcp.tool(name="athena_inspect_graph")
-    def inspect_graph(name: str, limit: int = 50) -> list[dict[str, Any]]:
+    async def inspect_graph(name: str, limit: int = 50) -> list[dict[str, Any]]:
         """Inspect typed incoming and outgoing graph relations for a symbol or configuration key."""
         return runtime.graph(name, max(1, min(limit, 100)))
 
     @mcp.tool(name="athena_status")
-    def status() -> dict[str, Any]:
+    async def status() -> dict[str, Any]:
         """Show index freshness, statistics, workspace restrictions, and available personas."""
         return runtime.status()
 
     @mcp.tool(name="athena_list_personas")
-    def list_personas() -> list[dict[str, Any]]:
+    async def list_personas() -> list[dict[str, Any]]:
         """List persona purposes and retrieval budgets."""
         return [
             {
@@ -137,17 +153,17 @@ def create_server(
         ]
 
     @mcp.tool(name="athena_diagnostics")
-    def diagnostics() -> dict[str, Any]:
+    async def diagnostics() -> dict[str, Any]:
         """Read watcher, indexing, and parse diagnostics produced by the Athena daemon."""
         return load_daemon_diagnostics(runtime.root)
 
     @mcp.resource("athena://persona/{persona_id}")
-    def persona_resource(persona_id: str) -> str:
+    async def persona_resource(persona_id: str) -> str:
         """Read one effective persona card without loading all framework documentation."""
         return runtime.persona(persona_id).prompt_card()
 
     @mcp.prompt(name="athena_task")
-    def task_prompt(
+    async def task_prompt(
         task: str,
         persona: str = "",
         tokenizer_provider: TokenizerProvider | None = None,

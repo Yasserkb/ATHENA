@@ -20,7 +20,11 @@ def test_copilot_mcp_exposes_one_minimal_auto_refreshing_tool(tmp_path: Path) ->
         tools = await server.list_tools()
         assert [tool.name for tool in tools] == ["athena_context"]
         assert tools[0].inputSchema["required"] == ["task"]
-        assert set(tools[0].inputSchema["properties"]) == {"task", "persona"}
+        assert set(tools[0].inputSchema["properties"]) == {
+            "task",
+            "persona",
+            "request_kind",
+        }
 
         result = await server._tool_manager.call_tool(
             "athena_context",
@@ -32,6 +36,17 @@ def test_copilot_mcp_exposes_one_minimal_auto_refreshing_tool(tmp_path: Path) ->
         assert payload["usage"]["scope"] == "mcp-call-tool-result-only"
         assert payload["evidence"]
         assert payload["evidence"][0]["path"] == "PaymentClient.java"
+
+        clarification = await server._tool_manager.call_tool(
+            "athena_context",
+            {"task": "Fix this payment thing again", "request_kind": "clarify"},
+            convert_result=False,
+        )
+        clarification_text = clarification.content[0].text
+        clarification_payload = json.loads(clarification_text)
+        assert clarification_payload["kind"] == "clarification"
+        assert clarification_payload["usage"]["budget"] == 400
+        assert "void retryPayment" not in clarification_text
 
     asyncio.run(exercise())
 

@@ -131,6 +131,10 @@ class EconomyMcpConfig(BaseModel):
     target_model: str | None = None
     response_representation: ResponseRepresentation = "compact-text-v1"
     max_context_tokens: int = Field(default=1400, ge=400, le=7000)
+    clarification_max_tokens: int = Field(default=400, ge=200, le=1200)
+    clarification_max_candidates: int = Field(default=3, ge=1, le=5)
+    clarification_confidence_threshold: float = Field(default=0.72, ge=0.0, le=1.0)
+    clarification_margin_threshold: float = Field(default=0.12, ge=0.0, le=1.0)
     continuation_ttl_minutes: int = Field(default=45, ge=1, le=240)
 
 
