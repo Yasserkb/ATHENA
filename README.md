@@ -60,6 +60,7 @@ SQLite schema, MCP projections, continuation tokens, daemon safety, and state la
 - Persona routing and repository-local persona overrides
 - Packaged, selectively indexed specialist knowledge
 - Full and one-tool economy MCP modes
+- Metadata-only ambiguity clarification before source context is loaded
 - Local multi-repository Observatory for health, token efficiency, activity, and graph traces
 - Deterministic host-specific MCP result accounting
 - Generic, OpenAI/tiktoken, Claude, and Copilot token accounting
@@ -456,6 +457,15 @@ athena repository-context `
   --persona security-analyst
 ```
 
+Resolve a vague target without returning source bodies:
+
+```powershell
+athena repository-context `
+  "Fix this authentication issue again" `
+  --root PROJECT `
+  --request-kind clarify
+```
+
 ### Inspect and export the graph
 
 ```powershell
@@ -498,8 +508,14 @@ athena mcp --root PROJECT --mode economy --mcp-host codex --daemon
 It exposes only:
 
 ```text
-repository_context(query, persona?, continuation_token?)
+repository_context(query, persona?, continuation_token?, request_kind="context"|"clarify")
 ```
+
+Use `request_kind="clarify"` only when the repository target is vague. The clarification pass
+returns at most three paths/symbols without source bodies or graph expansion. If it recommends
+`ask_user`, ask one focused question; if it recommends `use_context`, make one normal context call
+with the focused target. Clarification never accepts a continuation token and is recorded separately
+from context-savings metrics.
 
 Full mode is intended for debugging and rich clients:
 
@@ -542,6 +558,10 @@ mcp:
   host: codex
   economy:
     max_context_tokens: 1400
+    clarification_max_tokens: 400
+    clarification_max_candidates: 3
+    clarification_confidence_threshold: 0.72
+    clarification_margin_threshold: 0.12
     response_representation: compact-text-v1
 ```
 

@@ -19,6 +19,8 @@ represent the original chronological development timestamps.
 - Added provider-aware token accounting.
 - Added deterministic MCP envelope accounting.
 - Added bounded continuation tokens for expanding context.
+- Added bounded ambiguity clarification with metadata-only candidates, deterministic confidence
+  checks, separate token limits, and isolated metrics.
 
 ## Personas
 

@@ -516,8 +516,25 @@ through standard input/output.
 Economy mode exposes one tool:
 
 ```text
-repository_context(query, persona?, continuation_token?)
+repository_context(query, persona?, continuation_token?, request_kind="context"|"clarify")
 ```
+
+The same single tool accepts `request_kind="clarify"` for underspecified repository requests:
+
+```text
+repository_context(query, persona?, request_kind="clarify")
+```
+
+Clarification is a deterministic, metadata-only retrieval pass. It uses exact-node and lexical
+signals, skips graph expansion, selects at most the configured number of distinct targets, and
+returns paths, line ranges, symbol IDs, scores, and reasons without source content. The assessment
+compares the leading score, competing-candidate margin, exact-target presence, and vague query
+signals. It recommends either `use_context` or `ask_user`; the coding agent remains responsible for
+the final intent decision.
+
+Clarification has its own hard token ceiling (400 by default), does not issue or accept continuation
+tokens, and is recorded as a `clarification` metric. Consequently, clarification requests do not
+inflate the Observatory's full-index-versus-context token-savings estimate.
 
 Copilot compatibility mode exposes the same concept as `athena_context(task, persona?)`. Economy
 mode is intended for coding agents that should call Athena once before broad repository exploration,
