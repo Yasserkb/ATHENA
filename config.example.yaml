@@ -74,6 +74,7 @@ telemetry:
 
 daemon:
   poll_interval_ms: 250
+  idle_poll_interval_ms: 5000
   debounce_ms: 500
   max_batch_delay_ms: 2000
   heartbeat_timeout_seconds: 10

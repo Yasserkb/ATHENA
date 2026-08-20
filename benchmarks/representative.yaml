@@ -93,3 +93,67 @@ cases:
       - documentation
     forbidden_files:
       - legacy/UnrelatedLegacy.java
+
+  - id: python-user-implementation
+    query: Implement the Python FastAPI get_user endpoint in UserService and update its pytest
+    expected_persona: python-developer
+    expected_files:
+      - python/user_api.py
+      - python/test_user_api.py
+    expected_symbols:
+      - UserService
+      - get_user
+    expected_context_types:
+      - source
+      - test
+    forbidden_files:
+      - legacy/UnrelatedLegacy.java
+
+  - id: order-database-migration
+    query: Review the database migration V1 create_orders table as a PostgreSQL database administrator
+    expected_persona: database-administrator
+    expected_files:
+      - db/V1__create_orders.sql
+    expected_context_types:
+      - database
+    forbidden_files:
+      - legacy/UnrelatedLegacy.java
+
+  - id: java-order-tests
+    query: Add unit tests for OrderService create in OrderServiceTest
+    expected_persona: tester
+    expected_files:
+      - java/OrderService.java
+      - java/OrderServiceTest.java
+    expected_symbols:
+      - OrderService
+      - OrderServiceTest
+    expected_context_types:
+      - source
+      - test
+    forbidden_files:
+      - legacy/UnrelatedLegacy.java
+
+  - id: order-config-debug
+    query: Debug the order timeout-ms and retry-count configuration
+    expected_persona: debugger
+    expected_files:
+      - config/application.yml
+    expected_context_types:
+      - configuration
+    forbidden_files:
+      - legacy/UnrelatedLegacy.java
+
+  - id: checkout-release-summary
+    query: Write a release changelog for the CheckoutService submit change and its test
+    expected_persona: release
+    expected_files:
+      - typescript/checkout.ts
+      - typescript/checkout.test.ts
+    expected_symbols:
+      - CheckoutService
+    expected_context_types:
+      - source
+      - test
+    forbidden_files:
+      - legacy/UnrelatedLegacy.java

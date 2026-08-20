@@ -111,6 +111,7 @@ class TelemetryConfig(BaseModel):
 class DaemonConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
     poll_interval_ms: int = Field(default=250, ge=50, le=60_000)
+    idle_poll_interval_ms: int = Field(default=5_000, ge=250, le=300_000)
     debounce_ms: int = Field(default=500, ge=50, le=60_000)
     max_batch_delay_ms: int = Field(default=2_000, ge=100, le=300_000)
     heartbeat_timeout_seconds: int = Field(default=10, ge=2, le=300)

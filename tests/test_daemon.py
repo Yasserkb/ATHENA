@@ -170,6 +170,31 @@ def test_native_watcher_failure_falls_back_to_polling(
     assert "falling back to polling" in diagnostics["diagnostics"][0]["message"]
 
 
+def test_polling_watcher_backs_off_when_idle_and_resets_after_activity(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    (tmp_path / "app.py").write_text("def run(): pass\n", encoding="utf-8")
+    with AthenaRuntime(tmp_path) as runtime:
+        runtime.config.daemon.poll_interval_ms = 250
+        runtime.config.daemon.idle_poll_interval_ms = 1_000
+        service = DaemonService(tmp_path, runtime=runtime)
+        outcomes = iter((None, None, FileChanges(modified=frozenset({"app.py"}))))
+        delays: list[float] = []
+
+        monkeypatch.setattr(service, "tick", lambda: next(outcomes))
+
+        def record_sleep(delay: float) -> None:
+            delays.append(delay)
+            if len(delays) == 3:
+                service._stopping = True
+
+        monkeypatch.setattr(daemon_service.time, "sleep", record_sleep)
+        service._run_polling_watcher()
+
+    assert delays == [0.5, 1.0, 0.25]
+
+
 def test_ensure_daemon_reclaims_stopped_pid_reused_by_container_process(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

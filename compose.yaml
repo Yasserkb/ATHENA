@@ -6,10 +6,10 @@ services:
     build:
       context: .
       args:
-        VERSION: ${ATHENA_VERSION:-0.1.0}
+        VERSION: ${ATHENA_VERSION:-0.2.0}
         VCS_REF: ${VCS_REF:-local}
         BUILD_DATE: ${BUILD_DATE:-unknown}
-        SOURCE_URL: ${SOURCE_URL:-https://github.com/OWNER/athena-codegraph}
+        SOURCE_URL: ${SOURCE_URL:-https://github.com/Yasserkb/ATHENA}
     command:
       # A detached Compose service cannot provide an MCP STDIO session. Run the watcher in the
       # foreground instead; clients start their own short-lived MCP STDIO process when needed.
@@ -49,10 +49,10 @@ services:
     build:
       context: .
       args:
-        VERSION: ${ATHENA_VERSION:-0.1.0}
+        VERSION: ${ATHENA_VERSION:-0.2.0}
         VCS_REF: ${VCS_REF:-local}
         BUILD_DATE: ${BUILD_DATE:-unknown}
-        SOURCE_URL: ${SOURCE_URL:-https://github.com/OWNER/athena-codegraph}
+        SOURCE_URL: ${SOURCE_URL:-https://github.com/Yasserkb/ATHENA}
     command:
       - observatory
       - start

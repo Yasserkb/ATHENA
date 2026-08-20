@@ -2,6 +2,11 @@
 
 **Local-first, evidence-backed repository intelligence for coding assistants.**
 
+> **Public beta (`0.2.x`).** Athena is intended for local, single-user repository intelligence.
+> Interfaces may evolve before `1.0`; it is not an authenticated multi-tenant service. See the
+> [validation record](VALIDATION.md), [security policy](SECURITY.md), and
+> [changelog](CHANGELOG.md).
+
 Athena turns a source repository into a searchable SQLite code graph and supplies a coding agent
 with a small, persona-aware bundle of exact source evidence. It is designed for Codex, Claude Code,
 GitHub Copilot, Cursor, VS Code, JetBrains, and any client that can launch an MCP STDIO server.
@@ -287,6 +292,34 @@ entry points, persistence boundaries, and test strategy of this repository.
 
 ## Docker installation and operation
 
+Pull a published multi-platform image from Docker Hub, replacing the namespace with the one shown
+on the release page:
+
+```powershell
+docker pull <dockerhub-namespace>/athena-codegraph:0.2.0
+$env:ATHENA_IMAGE = "<dockerhub-namespace>/athena-codegraph:0.2.0"
+docker compose up -d
+```
+
+Pin a numbered version or immutable digest for production use. The `latest` tag is provided for
+evaluation and tracks the newest stable release.
+
+### Configure Docker Hub publishing
+
+The release workflow publishes automatically when a GitHub Release is published. One-time setup:
+
+1. Create a Docker Hub repository named `athena-codegraph`.
+2. Create a Docker Hub [personal access token](https://docs.docker.com/security/access-tokens/)
+   with Read & Write permission. Do not use your Docker Hub password.
+3. In the GitHub repository, create an environment named `docker-hub`.
+4. Add the environment variable `DOCKERHUB_USERNAME` with your Docker Hub namespace.
+5. Add the environment secret `DOCKERHUB_TOKEN` with the token from step 2.
+
+Publish a GitHub Release from a tag such as `v0.2.0`. The tag (without `v`) must match the version
+in `pyproject.toml`. CI validates and scans the candidate, then publishes AMD64 and ARM64 images,
+SBOM and provenance attestations, numbered tags, an optional `latest` tag, and a keyless signature.
+The workflow can also be started manually with **Actions → publish-container → Run workflow**.
+
 Build the local image from the Athena repository:
 
 ```powershell
@@ -549,6 +582,7 @@ retrieval:
 
 daemon:
   poll_interval_ms: 250
+  idle_poll_interval_ms: 5000
   debounce_ms: 500
   max_batch_delay_ms: 2000
   heartbeat_timeout_seconds: 10
@@ -566,7 +600,9 @@ mcp:
 ```
 
 On Windows native operation, keep the native watcher. If Athena must poll a large or remote
-filesystem, increase `poll_interval_ms` to reduce idle CPU at the cost of slower change detection.
+filesystem, Athena backs off to `idle_poll_interval_ms` after quiet polls and immediately returns to
+`poll_interval_ms` when activity appears. Increase the idle interval to reduce idle CPU at the cost
+of slower detection after a long quiet period.
 
 ## Synchronize a repository
 
@@ -715,6 +751,10 @@ control and exclude sensitive files from Athena discovery.
 ## License
 
 Athena CodeGraph is licensed under the [Apache License 2.0](LICENSE).
+
+Contributions are welcome under the [contribution guide](CONTRIBUTING.md) and
+[Code of Conduct](CODE_OF_CONDUCT.md). Report vulnerabilities privately as described in
+[SECURITY.md](SECURITY.md).
 
 ## Final operating checklist
 

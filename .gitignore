@@ -5,18 +5,39 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 .coverage
+.coverage.*
+coverage.xml
 htmlcov/
 dist/
 build/
 *.egg-info/
-.athena/index.db
-.athena/index.db-*
-.athena/cache/
-.athena/logs/
-.athena/daemon/
-.env
+
+# Repository-local assistant, IDE, and Athena runtime state. Public integration
+# templates belong under integrations/ instead of these developer-specific paths.
+.athena/
+.codex/
+.cursor/
+.vscode/
+.agents/
+.claude/
 .idea/
-.vscode/settings.json
+
+# Local databases, daemon files, logs, and scratch output.
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.log
+*.pid
+*.tmp
+tmp/
+.tmp/
+
+# Local environment files; keep sanitized examples publishable.
+.env
+.env.*
+!.env.example
+!.env.*.example
+
 .DS_Store
-.codex/config.toml
 benchmark-report.json

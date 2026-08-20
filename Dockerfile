@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.7
 # check=error=true
 
-ARG PYTHON_VERSION=3.12.13
-ARG PYTHON_IMAGE_DIGEST=sha256:229a2c5bfa27522db7815ea81f9bed70af17ccb9de9fc7ad142b1877b5830d36
+ARG PYTHON_VERSION=3.12.14
+ARG PYTHON_IMAGE_DIGEST=sha256:2c941e860699f878900b0edc2403613c234d4b32eda3cc9fa7036991a2a63c4a
 
 FROM python:${PYTHON_VERSION}-slim-trixie@${PYTHON_IMAGE_DIGEST} AS builder
 
@@ -16,7 +16,7 @@ WORKDIR /build
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
-COPY pyproject.toml README.md MANIFEST.in constraints-production.txt ./
+COPY pyproject.toml README.md MANIFEST.in LICENSE NOTICE constraints-production.txt ./
 COPY src ./src
 
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -30,8 +30,8 @@ FROM python:${PYTHON_VERSION}-slim-trixie@${PYTHON_IMAGE_DIGEST} AS runtime
 
 ARG BUILD_DATE
 ARG VCS_REF
-ARG VERSION=0.1.0
-ARG SOURCE_URL="https://github.com/OWNER/athena-codegraph"
+ARG VERSION=0.2.0
+ARG SOURCE_URL="https://github.com/Yasserkb/ATHENA"
 
 LABEL org.opencontainers.image.title="Athena CodeGraph" \
       org.opencontainers.image.description="Local-first repository context and code graph MCP server" \
@@ -42,6 +42,7 @@ LABEL org.opencontainers.image.title="Athena CodeGraph" \
       org.opencontainers.image.licenses="Apache-2.0"
 
 ENV PATH="/opt/venv/bin:${PATH}" \
+    ATHENA_VERSION="${VERSION}" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONFAULTHANDLER=1 \

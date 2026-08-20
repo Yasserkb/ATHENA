@@ -318,6 +318,7 @@ class DaemonService:
         self._last_status_write = float("-inf")
         self._last_state = ""
         self._retry_at: float | None = None
+        self._poll_delay_seconds = self.config.poll_interval_ms / 1000
         self.watcher_backend = (
             "native-watchfiles" if importlib.util.find_spec("watchfiles") is not None else "polling"
         )
@@ -340,6 +341,8 @@ class DaemonService:
                 "started_at": self.started_at,
                 "heartbeat_at": _utc_now(),
                 "poll_interval_ms": self.config.poll_interval_ms,
+                "idle_poll_interval_ms": self.config.idle_poll_interval_ms,
+                "current_poll_interval_ms": round(self._poll_delay_seconds * 1000),
                 "debounce_ms": self.config.debounce_ms,
                 "max_batch_delay_ms": self.config.max_batch_delay_ms,
                 "watcher_backend": self.watcher_backend,
@@ -514,9 +517,19 @@ class DaemonService:
                 self._run_polling_watcher()
 
     def _run_polling_watcher(self) -> None:
+        active_delay = self.config.poll_interval_ms / 1000
+        idle_delay = max(active_delay, self.config.idle_poll_interval_ms / 1000)
+        self._poll_delay_seconds = active_delay
         while not self._stopping and not self.paths["stop"].exists():
-            self.tick()
-            time.sleep(self.config.poll_interval_ms / 1000)
+            processed = self.tick()
+            if processed is not None or self.coalescer.pending_count or self.last_error is not None:
+                self._poll_delay_seconds = active_delay
+            else:
+                self._poll_delay_seconds = min(
+                    idle_delay,
+                    max(active_delay, self._poll_delay_seconds * 2),
+                )
+            time.sleep(self._poll_delay_seconds)
 
     def run(self) -> None:
         self.paths["directory"].mkdir(parents=True, exist_ok=True)
