@@ -54,13 +54,26 @@ jobs:
           test "$(docker image inspect athena-codegraph:release-candidate --format '{{.Config.User}}')" = "10001:10001"
           docker run --rm athena-codegraph:release-candidate version
 
-      - name: Scan release candidate for critical vulnerabilities
+      - name: Report all release-candidate vulnerabilities
+        uses: anchore/scan-action@v7
+        with:
+          image: athena-codegraph:release-candidate
+          fail-build: false
+          severity-cutoff: critical
+          output-format: table
+          cache-db: true
+
+      # Keep unfixed distro findings visible above, but block publication whenever
+      # a critical vulnerability has a remediation that this image has not applied.
+      - name: Block fixable critical vulnerabilities
         uses: anchore/scan-action@v7
         with:
           image: athena-codegraph:release-candidate
           fail-build: true
           severity-cutoff: critical
+          only-fixed: true
           output-format: table
+          cache-db: true
 
   publish:
     needs: validate

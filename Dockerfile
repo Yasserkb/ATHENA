@@ -2,9 +2,9 @@
 # check=error=true
 
 ARG PYTHON_VERSION=3.12.13
-ARG PYTHON_IMAGE_DIGEST=sha256:d50fb7611f86d04a3b0471b46d7557818d88983fc3136726336b2a4c657aa30b
+ARG PYTHON_IMAGE_DIGEST=sha256:229a2c5bfa27522db7815ea81f9bed70af17ccb9de9fc7ad142b1877b5830d36
 
-FROM python:${PYTHON_VERSION}-slim-bookworm@${PYTHON_IMAGE_DIGEST} AS builder
+FROM python:${PYTHON_VERSION}-slim-trixie@${PYTHON_IMAGE_DIGEST} AS builder
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -26,7 +26,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     && python -m pip check
 
 
-FROM python:${PYTHON_VERSION}-slim-bookworm@${PYTHON_IMAGE_DIGEST} AS runtime
+FROM python:${PYTHON_VERSION}-slim-trixie@${PYTHON_IMAGE_DIGEST} AS runtime
 
 ARG BUILD_DATE
 ARG VCS_REF
@@ -52,6 +52,7 @@ ENV PATH="/opt/venv/bin:${PATH}" \
     XDG_CACHE_HOME=/data/cache
 
 RUN apt-get update \
+    && apt-get upgrade --yes \
     && apt-get install --yes --no-install-recommends ca-certificates git tini \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid 10001 athena \

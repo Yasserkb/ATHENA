@@ -84,10 +84,21 @@ jobs:
           docker inspect "$container_id"
           exit 1
 
-      - name: Scan image for critical vulnerabilities
+      - name: Report all image vulnerabilities
+        uses: anchore/scan-action@v7
+        with:
+          image: athena-codegraph:ci
+          fail-build: false
+          severity-cutoff: critical
+          output-format: table
+          cache-db: true
+
+      - name: Block fixable critical vulnerabilities
         uses: anchore/scan-action@v7
         with:
           image: athena-codegraph:ci
           fail-build: true
           severity-cutoff: critical
+          only-fixed: true
           output-format: table
+          cache-db: true
