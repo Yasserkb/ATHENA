@@ -31,9 +31,7 @@ class ObservatoryService:
             "summary": {
                 "projects": len(projects),
                 "healthy_projects": sum(project.get("health") == "healthy" for project in projects),
-                "context_requests": sum(
-                    int(item.get("context_requests", 0)) for item in savings
-                ),
+                "context_requests": sum(int(item.get("context_requests", 0)) for item in savings),
                 "baseline_tokens": total_baseline,
                 "tokens_delivered": total_delivered,
                 "tokens_avoided": total_avoided,

@@ -505,7 +505,9 @@ class DaemonService:
             # subscribe to (for example, an IDE-owned .pytest_cache). Polling uses Athena's
             # already-filtered indexable-file snapshot and remains correct in that case.
             self.watcher_backend = "polling"
-            warning = f"Native watcher unavailable; falling back to polling: {type(exc).__name__}: {exc}"
+            warning = (
+                f"Native watcher unavailable; falling back to polling: {type(exc).__name__}: {exc}"
+            )
             self._write_diagnostics((warning,), FileChanges())
             self._write_status("idle", force=True)
             if not self._stopping and not self.paths["stop"].exists():

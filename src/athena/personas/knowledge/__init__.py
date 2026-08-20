@@ -29,7 +29,8 @@ def packaged_knowledge_files(persona_id: str | None = None) -> dict[str, tuple[s
         names = tuple(
             item.name
             for item in sorted(directory.iterdir(), key=lambda item: item.name)
-            if item.name.endswith(".md") and not item.name.startswith("COPILOT_INSTRUCTIONS_SNIPPET")
+            if item.name.endswith(".md")
+            and not item.name.startswith("COPILOT_INSTRUCTIONS_SNIPPET")
         )
         if names:
             grouped[directory.name] = names

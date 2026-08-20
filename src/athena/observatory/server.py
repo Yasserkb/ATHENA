@@ -135,7 +135,9 @@ def _handler(service: ObservatoryService) -> type[BaseHTTPRequestHandler]:
             host = self.headers.get("Host", "").casefold()
             hostname = host.rsplit(":", 1)[0].strip("[]")
             bound_address = self.server.server_address
-            bound_host = str(bound_address[0] if isinstance(bound_address, tuple) else bound_address)
+            bound_host = str(
+                bound_address[0] if isinstance(bound_address, tuple) else bound_address
+            )
             bound_host = bound_host.casefold()
             allowed = {"localhost", "127.0.0.1", "::1", bound_host, "0.0.0.0"}
             if hostname not in allowed:
@@ -147,9 +149,7 @@ def _handler(service: ObservatoryService) -> type[BaseHTTPRequestHandler]:
                 return False
             return True
 
-        def _json(
-            self, payload: dict[str, Any], status: HTTPStatus = HTTPStatus.OK
-        ) -> None:
+        def _json(self, payload: dict[str, Any], status: HTTPStatus = HTTPStatus.OK) -> None:
             body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
             self.send_response(status)
             self._headers("application/json; charset=utf-8", len(body))

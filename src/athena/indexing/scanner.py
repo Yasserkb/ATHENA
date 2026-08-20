@@ -425,9 +425,7 @@ class RepositoryScanner:
             kept: list[str] = []
             for name in dirnames:
                 relative = (base / name).relative_to(self.root).as_posix()
-                local_knowledge = relative == ".athena" or relative.startswith(
-                    ".athena/knowledge"
-                )
+                local_knowledge = relative == ".athena" or relative.startswith(".athena/knowledge")
                 athena_runtime = relative.startswith(".athena/") and not local_knowledge
                 ignored = ignore.match_file(f"{relative}/") or ignore.match_file(
                     f"{relative}/.athena-walk-probe"

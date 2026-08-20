@@ -194,9 +194,7 @@ class ContextCompiler:
             incremental_files_scanned=scanned,
             request_kind=request_kind,
             clarification_max_candidates=self.settings.clarification_max_candidates,
-            clarification_confidence_threshold=(
-                self.settings.clarification_confidence_threshold
-            ),
+            clarification_confidence_threshold=(self.settings.clarification_confidence_threshold),
             clarification_margin_threshold=self.settings.clarification_margin_threshold,
         )
         returned = frozenset(hit.chunk.chunk_id for hit in bundle.hits)

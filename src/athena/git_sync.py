@@ -66,10 +66,11 @@ def sync_repository(root: Path, runner: GitRunner = _run_git) -> GitSyncResult:
     try:
         ahead, behind = (int(value) for value in fields)
     except ValueError as exc:
-        raise AthenaError(f"Git returned an invalid synchronization status: {divergence!r}") from exc
+        raise AthenaError(
+            f"Git returned an invalid synchronization status: {divergence!r}"
+        ) from exc
     if ahead or behind:
         raise AthenaError(
-            f"Push completed but HEAD and {upstream} still differ "
-            f"(ahead {ahead}, behind {behind})"
+            f"Push completed but HEAD and {upstream} still differ (ahead {ahead}, behind {behind})"
         )
     return GitSyncResult(upstream, ahead, behind)

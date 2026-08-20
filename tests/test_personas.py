@@ -21,6 +21,18 @@ def test_personas_have_retrieval_policies(tmp_path: Path) -> None:
     assert confidence > 0
 
 
+def test_explicit_debug_intent_beats_incidental_stack_and_backend_terms(tmp_path: Path) -> None:
+    personas = PersonaRegistry(tmp_path).all()
+
+    routed, confidence = PersonaRouter().route(
+        "Debug the FastAPI UserService get_user endpoint and test_get_user",
+        personas,
+    )
+
+    assert routed.persona_id == "debugger"
+    assert confidence > 0
+
+
 def test_senior_developer_is_manually_selectable(tmp_path: Path) -> None:
     personas = PersonaRegistry(tmp_path).all()
     assert personas["senior-developer"].policy.max_context_tokens == 4600

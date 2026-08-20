@@ -480,9 +480,7 @@ class RetrievalService:
         return selected
 
     @staticmethod
-    def _pack_clarification(
-        ranked: list[_Candidate], max_candidates: int
-    ) -> list[_Candidate]:
+    def _pack_clarification(ranked: list[_Candidate], max_candidates: int) -> list[_Candidate]:
         """Select distinct target metadata without paying to serialize source bodies."""
         selected: list[_Candidate] = []
         seen_paths: set[str] = set()
@@ -785,9 +783,7 @@ def _assess_query(
     conflicting_exact_targets = len(exact_targets) > 1 and competing
     low_confidence = top < confidence_threshold
     specific_signals = [
-        term
-        for term in exact_search_terms(task)
-        if term.casefold() not in _GENERIC_TARGET_TERMS
+        term for term in exact_search_terms(task) if term.casefold() not in _GENERIC_TARGET_TERMS
     ]
     few_signals = len(specific_signals) < 2
 

@@ -11,7 +11,10 @@ _SIGNALS = (
     ),
     (re.compile(r"\b(test|tests|coverage|junit|pytest|integration test)\b", re.I), "tester"),
     (
-        re.compile(r"\b(fix|bug|error|exception|crash|traceback|stack trace|not working)\b", re.I),
+        re.compile(
+            r"\b(debug|debugging|fix|bug|error|exception|crash|traceback|stack trace|not working)\b",
+            re.I,
+        ),
         "debugger",
     ),
     (
@@ -27,11 +30,21 @@ _SIGNALS = (
 
 _SPECIALIST_PERSONAS = frozenset(
     {
-        "backend-developer", "cloud-engineer-architect", "data-engineer",
-        "database-administrator", "devops-engineer", "frontend-web-developer",
-        "fullstack-typescript-developer", "mern-developer", "mobile-developer",
-        "python-developer", "qa-test-automation-engineer", "security-analyst",
-        "spring-angular-developer", "t3-developer", "t4-universal-developer",
+        "backend-developer",
+        "cloud-engineer-architect",
+        "data-engineer",
+        "database-administrator",
+        "devops-engineer",
+        "frontend-web-developer",
+        "fullstack-typescript-developer",
+        "mern-developer",
+        "mobile-developer",
+        "python-developer",
+        "qa-test-automation-engineer",
+        "security-analyst",
+        "spring-angular-developer",
+        "t3-developer",
+        "t4-universal-developer",
     }
 )
 
@@ -64,7 +77,12 @@ class PersonaRouter:
             lowered,
         )
         implementation = re.search(r"\b(?:implement|add|create|build|refactor|change)\b", lowered)
-        if implementation and not test_creation and not matched_specialists and "developer" in scores:
+        if (
+            implementation
+            and not test_creation
+            and not matched_specialists
+            and "developer" in scores
+        ):
             scores["developer"] += 0.65
         best_id = max(scores, key=lambda key: scores[key]) if scores else "developer"
         top = scores.get(best_id, 0.0)

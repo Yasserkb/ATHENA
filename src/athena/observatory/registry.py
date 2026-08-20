@@ -58,7 +58,9 @@ class ProjectRegistry:
                 )
             except (KeyError, TypeError, ValueError):
                 continue
-        return tuple(sorted(entries, key=lambda entry: (entry.root.name.casefold(), str(entry.root))))
+        return tuple(
+            sorted(entries, key=lambda entry: (entry.root.name.casefold(), str(entry.root)))
+        )
 
     def get(self, project_id: str) -> ProjectEntry | None:
         return next((entry for entry in self.all() if entry.project_id == project_id), None)
@@ -80,7 +82,9 @@ class ProjectRegistry:
             selected_database,
             existing.get(
                 project_id,
-                ProjectEntry(project_id, resolved, selected_database, datetime.now(UTC).isoformat()),
+                ProjectEntry(
+                    project_id, resolved, selected_database, datetime.now(UTC).isoformat()
+                ),
             ).added_at,
         )
         existing[project_id] = entry

@@ -1071,9 +1071,7 @@ class SQLiteStore:
         size_bytes = int(row["bytes"] or 0)
         return math.ceil(size_bytes / 3.6) if size_bytes else 0
 
-    def observatory_metrics(
-        self, repository: str | None = None, limit: int = 30
-    ) -> dict[str, Any]:
+    def observatory_metrics(self, repository: str | None = None, limit: int = 30) -> dict[str, Any]:
         """Return bounded activity and token-efficiency data for the local Observatory."""
         where = " WHERE repository=?" if repository else ""
         params: tuple[Any, ...] = (repository,) if repository else ()
@@ -1137,9 +1135,7 @@ class SQLiteStore:
                 "cache_hits": cache_hits,
                 "cache_hit_rate": round(cache_hits / request_count, 4) if request_count else 0.0,
                 "average_confidence": (
-                    round(confidence_total / confidence_samples, 3)
-                    if confidence_samples
-                    else 0.0
+                    round(confidence_total / confidence_samples, 3) if confidence_samples else 0.0
                 ),
                 "baseline": "full-index-per-context-request",
                 "measurement": "estimated:utf8-bytes-v1",
