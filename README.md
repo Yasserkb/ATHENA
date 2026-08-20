@@ -568,6 +568,19 @@ mcp:
 On Windows native operation, keep the native watcher. If Athena must poll a large or remote
 filesystem, increase `poll_interval_ms` to reduce idle CPU at the cost of slower change detection.
 
+## Synchronize a repository
+
+Use one guarded command when you want to update from the configured upstream, publish local
+commits, verify that both sides match, and refresh Athena's index:
+
+```powershell
+athena sync --root D:\path\to\project
+```
+
+The command runs `git pull --rebase --autostash` before `git push`. It stops on pull conflicts,
+requires the current branch to have an upstream, and verifies that `HEAD` and the upstream have no
+remaining commits on either side before scanning the repository.
+
 ## Repository structure
 
 ```text

@@ -29,6 +29,7 @@ from athena.evaluation import (
     run_benchmark,
     run_evaluation,
 )
+from athena.git_sync import sync_repository
 from athena.graph import export_graph
 from athena.indexing.scanner import git_head
 from athena.indexing.semantic import SemanticPluginRegistry
@@ -193,6 +194,23 @@ def scan(
             )
             for warning in report.warnings:
                 typer.secho(f"warning: {warning}", fg=typer.colors.YELLOW)
+
+    _run(action)
+
+
+@app.command()
+def sync(root: RootOption = Path(".")) -> None:
+    """Pull with rebase, push, verify the upstream, and refresh Athena's index."""
+
+    def action() -> None:
+        resolved = _root(root)
+        result = sync_repository(resolved)
+        with AthenaRuntime(resolved) as runtime:
+            report = runtime.scan()
+        typer.echo(
+            f"Synchronized with {result.upstream}; indexed {report.scanned} changed, "
+            f"{report.unchanged} unchanged, {report.deleted} deleted"
+        )
 
     _run(action)
 
